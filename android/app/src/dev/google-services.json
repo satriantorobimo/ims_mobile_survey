@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "742928048406",
+    "project_id": "ims-mobile-survey-dev",
+    "storage_bucket": "ims-mobile-survey-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742928048406:android:25ac7cbcab89e9225cf037",
+        "android_client_info": {
+          "package_name": "com.ims.mobile_survey.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "742928048406-sktfksgo3khb3u1rnek2kscs87p3hu7i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ims.mobile_survey.dev",
+            "certificate_hash": "c781d5b725db2fe520aa76bc731a32700cd19369"
+          }
+        },
+        {
+          "client_id": "742928048406-aot44ufjbcrtl5004qo38oaaglushhml.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC59IIUC9Xo4dR4FiIVY8-cwu-rIsG5f_E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "742928048406-aot44ufjbcrtl5004qo38oaaglushhml.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
