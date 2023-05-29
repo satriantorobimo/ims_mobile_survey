@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_survey/feature/login/screen/login_screen.dart';
+import 'package:mobile_survey/feature/login/provider/login_provider.dart';
+import 'package:mobile_survey/router.dart';
+import 'package:mobile_survey/utility/string_router_util.dart';
+import 'package:provider/provider.dart';
 
 import 'components/color_comp.dart';
 
@@ -14,13 +17,17 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mobile Survey',
-      theme: ThemeData(
-          primaryColor: primaryColor,
-          textTheme:
-              GoogleFonts.notoSansTextTheme(Theme.of(context).textTheme)),
-      home: const LoginScreen(),
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => LoginProvider())],
+      child: MaterialApp(
+        title: 'Mobile Survey',
+        theme: ThemeData(
+            primaryColor: primaryColor,
+            textTheme:
+                GoogleFonts.nunitoSansTextTheme(Theme.of(context).textTheme)),
+        onGenerateRoute: Routers.generateRoute,
+        initialRoute: StringRouterUtil.splashScreenRoute,
+      ),
     );
   }
 }
