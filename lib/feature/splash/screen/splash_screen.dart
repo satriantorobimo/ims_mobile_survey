@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 
-import '../../../utility/string_content_util.dart';
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
