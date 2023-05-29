@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_survey/feature/login/provider/login_provider.dart';
+import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
 import 'package:mobile_survey/router.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,10 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => LoginProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+        ChangeNotifierProvider(create: (_) => TabProvider())
+      ],
       child: MaterialApp(
         title: 'Mobile Survey',
         theme: ThemeData(

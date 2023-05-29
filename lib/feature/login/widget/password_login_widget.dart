@@ -15,7 +15,7 @@ class PasswordLoginWidget extends StatefulWidget {
 
 class _PasswordLoginWidgetState extends State<PasswordLoginWidget> {
   final TextEditingController _controller = TextEditingController();
-  bool _isShow = false;
+  bool _isShow = true;
   @override
   Widget build(BuildContext context) {
     final LoginProvider loginProdiver = Provider.of<LoginProvider>(context);

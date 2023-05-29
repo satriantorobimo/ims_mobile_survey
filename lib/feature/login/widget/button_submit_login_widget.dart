@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../components/color_comp.dart';
 import '../../../utility/string_content_util.dart';
+import '../../../utility/string_router_util.dart';
 import '../provider/login_provider.dart';
 
 class ButtonSubmitLoginWidget extends StatefulWidget {
@@ -22,16 +23,16 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
   AnimationController? animationController;
   @override
   void dispose() {
-    super.dispose();
     animationController!.dispose();
+    super.dispose();
   }
 
   @override
   void initState() {
-    super.initState();
     animationController =
         AnimationController(duration: const Duration(seconds: 2), vsync: this);
     animationController!.repeat();
+    super.initState();
   }
 
   void _userPassNotFilled() {
@@ -182,6 +183,10 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
         if (loginProdiver.email.isEmpty || loginProdiver.password.isEmpty) {
           _userPassNotFilled();
         } else {
+          Future.delayed(const Duration(seconds: 2), () {
+            Navigator.pushNamedAndRemoveUntil(
+                context, StringRouterUtil.tabScreenRoute, (route) => false);
+          });
           _loginAttempt(context);
         }
       },

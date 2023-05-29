@@ -5,4 +5,5 @@ class StringRouterUtil {
 
   static const String splashScreenRoute = '/';
   static const String loginScreenRoute = '/login-route';
+  static const String tabScreenRoute = '/tab-route';
 }
