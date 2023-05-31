@@ -12,7 +12,7 @@ class UserInfoHomeWidget extends StatelessWidget {
           child: Text(
             'Home',
             style: TextStyle(
-                fontSize: 24, color: Colors.black, fontWeight: FontWeight.w600),
+                fontSize: 24, color: Colors.black, fontWeight: FontWeight.w700),
           ),
         ),
         const SizedBox(height: 24),
