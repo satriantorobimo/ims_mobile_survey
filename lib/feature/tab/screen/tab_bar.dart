@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/feature/account/screen/account_screen.dart';
 import 'package:mobile_survey/feature/home/screen/home_screen.dart';
+import 'package:mobile_survey/feature/pending/screen/pending_screen.dart';
 import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +22,7 @@ class _TabBarScreenState extends State<TabBarScreen> {
       return Container();
     }
     if (index == 2) {
-      return Container();
+      return const PendingScreen();
     }
     if (index == 3) {
       return const AccountScreen();
