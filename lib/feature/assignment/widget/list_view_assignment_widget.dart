@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/feature/assignment/widget/card_widget.dart';
+import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
 
 import '../provider/assignment_provider.dart';
@@ -168,7 +169,10 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                 ),
                 const SizedBox(height: 24),
                 InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, StringRouterUtil.form1ScreenRoute);
+                  },
                   child: Container(
                     width: double.infinity,
                     height: 45,
