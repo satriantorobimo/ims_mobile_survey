@@ -7,24 +7,21 @@ class ButtonSubmitWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: InkWell(
-        onTap: () {},
-        child: Container(
-          width: double.infinity,
-          height: 45,
-          decoration: BoxDecoration(
-            color: primaryColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Center(
-              child: Text('Kirim Ulang',
-                  style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600))),
+    return InkWell(
+      onTap: () {},
+      child: Container(
+        width: double.infinity,
+        height: 45,
+        decoration: BoxDecoration(
+          color: primaryColor,
+          borderRadius: BorderRadius.circular(8),
         ),
+        child: const Center(
+            child: Text('Kirim Ulang',
+                style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600))),
       ),
     );
   }
