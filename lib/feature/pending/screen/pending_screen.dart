@@ -41,21 +41,21 @@ class _PendingScreenState extends State<PendingScreen> {
             colors: <Color>[Colors.white, Color(0xFFf9f9f9)],
           ),
         ),
-        child: Column(
-          children: [
-            ListView.separated(
-                shrinkWrap: true,
-                separatorBuilder: (context, index) {
-                  return const SizedBox(height: 12);
-                },
-                scrollDirection: Axis.vertical,
-                itemCount: 3,
-                padding: const EdgeInsets.all(16),
-                itemBuilder: (context, index) {
-                  return const MainContentWidget();
-                }),
-            const ButtonSubmitWidget()
-          ],
+        child: Expanded(
+          child: ListView.separated(
+              shrinkWrap: true,
+              separatorBuilder: (context, index) {
+                return const SizedBox(height: 12);
+              },
+              scrollDirection: Axis.vertical,
+              itemCount: 25,
+              padding: const EdgeInsets.all(16),
+              itemBuilder: (context, index) {
+                if (index == 25 - 1) {
+                  return const ButtonSubmitWidget();
+                }
+                return const MainContentWidget();
+              }),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_survey/feature/assignment/provider/assignment_provider.dart';
 import 'package:mobile_survey/feature/login/provider/login_provider.dart';
 import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
 import 'package:mobile_survey/router.dart';
@@ -21,7 +22,8 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LoginProvider()),
-        ChangeNotifierProvider(create: (_) => TabProvider())
+        ChangeNotifierProvider(create: (_) => TabProvider()),
+        ChangeNotifierProvider(create: (_) => AssignmentProvider())
       ],
       child: MaterialApp(
         title: 'Mobile Survey',
