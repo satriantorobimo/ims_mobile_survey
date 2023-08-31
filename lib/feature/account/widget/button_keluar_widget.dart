@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/shared_pref_util.dart';
+import 'package:mobile_survey/utility/string_router_util.dart';
 
 import '../../../components/color_comp.dart';
 
@@ -11,7 +14,18 @@ class ButtonKeluarWidget extends StatelessWidget {
       width: double.infinity,
       height: 45,
       child: OutlinedButton(
-          onPressed: () {},
+          onPressed: () async {
+            SharedPrefUtil.deleteSharedPref('token').then((value) async {
+              final database = await $FloorAppDatabase
+                  .databaseBuilder('mobile_survey.db')
+                  .build();
+              final personDao = database.userDao;
+              personDao.deleteUserById(0);
+              // ignore: use_build_context_synchronously
+              Navigator.pushNamedAndRemoveUntil(
+                  context, StringRouterUtil.loginScreenRoute, (route) => false);
+            });
+          },
           // ignore: sort_child_properties_last
           child: const Text(
             'Keluar',

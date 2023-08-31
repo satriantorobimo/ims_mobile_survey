@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../widget/button_submit_widget.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/network_util.dart';
 import '../widget/main_content_widget.dart';
 
 class PendingScreen extends StatefulWidget {
@@ -10,18 +13,69 @@ class PendingScreen extends StatefulWidget {
 }
 
 class _PendingScreenState extends State<PendingScreen> {
+  final InternetConnectionChecker internetConnectionChecker =
+      InternetConnectionChecker();
+  List<TaskList> pending = [];
+  bool isLoading = true, isConnect = false;
+  Future<void> _getData() async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final taskListDao = database.taskListDao;
+
+    await taskListDao.findTaskListByStatus('PENDING').then((value) async {
+      for (int i = 0; i < value.length; i++) {
+        setState(() {
+          pending.add(value[i]!);
+        });
+      }
+    });
+
+    setState(() {
+      isLoading = false;
+      database.close();
+    });
+  }
+
+  @override
+  void initState() {
+    _getData();
+    super.initState();
+  }
+
+  Future<void> _pullRefresh() async {
+    NetworkInfo(internetConnectionChecker).isConnected.then((value) {
+      setState(() {
+        isLoading = true;
+        pending = [];
+        _getData();
+      });
+      if (value) {
+        setState(() {
+          isConnect = true;
+        });
+      } else {
+        setState(() {
+          isConnect = false;
+        });
+      }
+      setState(() {
+        isLoading = false;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 16),
             child: Icon(
               Icons.circle,
-              color: Color(0xFF5DEA51),
+              color: isConnect ? const Color(0xFF5DEA51) : Colors.red,
             ),
           )
         ],
@@ -41,22 +95,22 @@ class _PendingScreenState extends State<PendingScreen> {
             colors: <Color>[Colors.white, Color(0xFFf9f9f9)],
           ),
         ),
-        child: Expanded(
-          child: ListView.separated(
-              shrinkWrap: true,
-              separatorBuilder: (context, index) {
-                return const SizedBox(height: 12);
-              },
-              scrollDirection: Axis.vertical,
-              itemCount: 25,
-              padding: const EdgeInsets.all(16),
-              itemBuilder: (context, index) {
-                if (index == 25 - 1) {
-                  return const ButtonSubmitWidget();
-                }
-                return const MainContentWidget();
-              }),
-        ),
+        child: isLoading
+            ? Container()
+            : RefreshIndicator(
+                onRefresh: _pullRefresh,
+                child: ListView.separated(
+                    shrinkWrap: true,
+                    separatorBuilder: (context, index) {
+                      return const SizedBox(height: 12);
+                    },
+                    scrollDirection: Axis.vertical,
+                    itemCount: pending.length,
+                    padding: const EdgeInsets.all(16),
+                    itemBuilder: (context, index) {
+                      return MainContentWidget(taskList: pending[index]);
+                    }),
+              ),
       ),
     );
   }

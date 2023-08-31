@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/utility/string_router_util.dart';
-
-import '../../../components/color_comp.dart';
+import 'package:intl/intl.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import '../widget/button_next_1_widget.dart';
+import '../widget/form_info_1_widget.dart';
 
 class FormSurvey1Screen extends StatefulWidget {
-  const FormSurvey1Screen({super.key});
-
+  const FormSurvey1Screen({super.key, required this.taskList});
+  final TaskList taskList;
   @override
   State<FormSurvey1Screen> createState() => _FormSurvey1ScreenState();
 }
 
 class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
+  late String date;
+  @override
+  void initState() {
+    DateTime now = DateTime.now();
+    setState(() {
+      date = DateFormat('dd/MM/yyyy').format(now);
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(
-          color: Colors.black, //change your color here
+          color: Colors.black,
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -70,221 +81,40 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.40,
-                                child: Column(
-                                  children: [
-                                    const Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        'Cabang',
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            color: Color(0xFF575551),
-                                            fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      height: 45,
-                                      padding: const EdgeInsets.all(8),
-                                      width: MediaQuery.of(context).size.width *
-                                          0.40,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.1),
-                                        border: Border.all(
-                                            width: 1.0,
-                                            color:
-                                                Colors.grey.withOpacity(0.5)),
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(10.0)),
-                                      ),
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text('Semarang',
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: const Color(0xFF2D2A26)
-                                                    .withOpacity(0.5),
-                                                fontWeight: FontWeight.w400)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.43,
-                                child: Column(
-                                  children: [
-                                    const Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        'Agreement No.',
-                                        style: TextStyle(
-                                            fontSize: 12,
-                                            color: Color(0xFF575551),
-                                            fontWeight: FontWeight.w600),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Center(
-                                      child: Container(
-                                        height: 45,
-                                        padding: const EdgeInsets.all(8),
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.43,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          border: Border.all(
-                                              width: 1.0,
-                                              color:
-                                                  Colors.grey.withOpacity(0.5)),
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(10.0)),
-                                        ),
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text('97934793532',
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: const Color(0xFF2D2A26)
-                                                      .withOpacity(0.5),
-                                                  fontWeight: FontWeight.w400)),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Cabang',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: widget.taskList.branchName),
                           const SizedBox(height: 16),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Column(
-                              children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Nama Pelanggan',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF575551),
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  height: 45,
-                                  padding: const EdgeInsets.all(8),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    border: Border.all(
-                                        width: 1.0,
-                                        color: Colors.grey.withOpacity(0.5)),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10.0)),
-                                  ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text('Dimas',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: const Color(0xFF2D2A26)
-                                                .withOpacity(0.5),
-                                            fontWeight: FontWeight.w400)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Agreement No.',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: widget.taskList.agreementNo),
                           const SizedBox(height: 16),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Column(
-                              children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'No. Telp',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF575551),
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  height: 45,
-                                  padding: const EdgeInsets.all(8),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    border: Border.all(
-                                        width: 1.0,
-                                        color: Colors.grey.withOpacity(0.5)),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10.0)),
-                                  ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text('081232357382',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: const Color(0xFF2D2A26)
-                                                .withOpacity(0.5),
-                                            fontWeight: FontWeight.w400)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Nama Pelanggan',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: widget.taskList.clientName),
                           const SizedBox(height: 16),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Column(
-                              children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Kategori Lokasi',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF575551),
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  height: 45,
-                                  padding: const EdgeInsets.all(8),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    border: Border.all(
-                                        width: 1.0,
-                                        color: Colors.grey.withOpacity(0.5)),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10.0)),
-                                  ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text('Tempat Kerja',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: const Color(0xFF2D2A26)
-                                                .withOpacity(0.5),
-                                            fontWeight: FontWeight.w400)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'No. Telp',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: widget.taskList.mobileNo),
+                          const SizedBox(height: 16),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Type',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: widget.taskList.type),
                         ],
                       ),
                     ),
@@ -299,128 +129,26 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                       padding: const EdgeInsets.only(left: 24, right: 24),
                       child: Column(
                         children: [
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Column(
-                              children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Field 1',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF575551),
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  height: 45,
-                                  padding: const EdgeInsets.all(8),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    border: Border.all(
-                                        width: 1.0,
-                                        color: Colors.grey.withOpacity(0.5)),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10.0)),
-                                  ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text('Isi Field 1',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: const Color(0xFF2D2A26)
-                                                .withOpacity(0.5),
-                                            fontWeight: FontWeight.w400)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Field 1',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: 'Isi Field 1'),
                           const SizedBox(height: 16),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Column(
-                              children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Field 2',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF575551),
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  height: 45,
-                                  padding: const EdgeInsets.all(8),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    border: Border.all(
-                                        width: 1.0,
-                                        color: Colors.grey.withOpacity(0.5)),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10.0)),
-                                  ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text('Isi Field 2',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: const Color(0xFF2D2A26)
-                                                .withOpacity(0.5),
-                                            fontWeight: FontWeight.w400)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Field 2',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: 'Isi Field 2'),
                           const SizedBox(height: 16),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Column(
-                              children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Field 3',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF575551),
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  height: 45,
-                                  padding: const EdgeInsets.all(8),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    border: Border.all(
-                                        width: 1.0,
-                                        color: Colors.grey.withOpacity(0.5)),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(10.0)),
-                                  ),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text('Isi Field 3',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: const Color(0xFF2D2A26)
-                                                .withOpacity(0.5),
-                                            fontWeight: FontWeight.w400)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Field 3',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: 'Isi Field 3'),
                         ],
                       ),
                     ),
@@ -469,7 +197,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                                       ),
                                       child: Align(
                                         alignment: Alignment.centerLeft,
-                                        child: Text('07/07/2023',
+                                        child: Text(date,
                                             style: TextStyle(
                                                 fontSize: 14,
                                                 color: const Color(0xFF2D2A26)
@@ -513,7 +241,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                                         ),
                                         child: Align(
                                           alignment: Alignment.centerLeft,
-                                          child: Text('Surveyor',
+                                          child: Text(widget.taskList.picName,
                                               style: TextStyle(
                                                   fontSize: 14,
                                                   color: const Color(0xFF2D2A26)
@@ -596,30 +324,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: 24, left: 24, right: 24),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(
-                          context, StringRouterUtil.form2ScreenRoute);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: 45,
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Center(
-                          child: Text('Berikutnya',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600))),
-                    ),
-                  ),
-                ))
+                child: ButtonNext1Widget(taskList: widget.taskList))
           ],
         ),
       ),

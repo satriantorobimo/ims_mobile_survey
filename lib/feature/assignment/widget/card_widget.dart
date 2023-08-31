@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 
 class CardWidget extends StatelessWidget {
   const CardWidget(
@@ -6,12 +7,14 @@ class CardWidget extends StatelessWidget {
       required this.color,
       required this.colorBg,
       required this.name,
-      required this.label});
+      required this.label,
+      required this.taskList});
 
   final Color color;
   final Color colorBg;
   final String name;
   final String label;
+  final TaskList taskList;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +39,9 @@ class CardWidget extends StatelessWidget {
                 color: Color(0xFF575551)),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Jl Badak no. 3, Kel. Gayamsari, Kec. Gayamsari, Semarang',
-            style: TextStyle(
+          Text(
+            taskList.type,
+            style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
                 color: Color(0xFF575551)),
@@ -47,9 +50,9 @@ class CardWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '081212345678',
-                style: TextStyle(
+              Text(
+                taskList.mobileNo,
+                style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF575551)),

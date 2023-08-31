@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/provider/assignment_provider.dart';
 import 'package:mobile_survey/feature/assignment/widget/list_view_assignment_widget.dart';
+import 'package:mobile_survey/utility/database_util.dart';
 import 'package:provider/provider.dart';
 
 class AssignmentScreen extends StatefulWidget {
@@ -21,9 +23,17 @@ class _AssignmentScreenState extends State<AssignmentScreen>
     Tab(text: 'Selesai'),
   ];
 
+  List<TaskList> ongoing = [];
+  List<TaskList> waiting = [];
+  List<TaskList> returned = [];
+  List<TaskList> done = [];
+
+  bool isLoading = true;
+
   @override
   void initState() {
     _tabController = TabController(length: 4, vsync: this);
+    _sortingData();
     super.initState();
   }
 
@@ -31,6 +41,39 @@ class _AssignmentScreenState extends State<AssignmentScreen>
   void dispose() {
     super.dispose();
     _tabController.dispose();
+  }
+
+  Future<void> _sortingData() async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final taskListDao = database.taskListDao;
+
+    await taskListDao.findAllTaskList().then((value) async {
+      for (int i = 0; i < value.length; i++) {
+        if (value[i]!.status == 'ASSIGN') {
+          setState(() {
+            ongoing.add(value[i]!);
+          });
+        } else if (value[i]!.status == 'DONE') {
+          setState(() {
+            done.add(value[i]!);
+          });
+        } else if (value[i]!.status == 'RETURN') {
+          setState(() {
+            returned.add(value[i]!);
+          });
+        } else if (value[i]!.status == 'WAITING') {
+          setState(() {
+            waiting.add(value[i]!);
+          });
+        }
+      }
+    });
+
+    setState(() {
+      isLoading = false;
+      database.close();
+    });
   }
 
   @override
@@ -98,11 +141,13 @@ class _AssignmentScreenState extends State<AssignmentScreen>
                   child: TabBarView(
                     physics: const NeverScrollableScrollPhysics(),
                     controller: _tabController,
-                    children: const <Widget>[
-                      ListViewAssignmentWidget(),
-                      ListViewAssignmentWidget(),
-                      ListViewAssignmentWidget(),
-                      ListViewAssignmentWidget(),
+                    children: <Widget>[
+                      isLoading
+                          ? Container()
+                          : ListViewAssignmentWidget(taskList: ongoing),
+                      ListViewAssignmentWidget(taskList: waiting),
+                      ListViewAssignmentWidget(taskList: returned),
+                      ListViewAssignmentWidget(taskList: done),
                     ],
                   ),
                 ),

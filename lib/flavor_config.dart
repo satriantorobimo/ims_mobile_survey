@@ -6,8 +6,9 @@ import 'package:mobile_survey/utility/string_util.dart';
 enum Flavor { DEV, UAT, PRODUCTION }
 
 class FlavorValues {
-  FlavorValues({@required this.baseUrl});
+  FlavorValues({@required this.baseUrl, @required this.userId});
   final String? baseUrl;
+  final String? userId;
 }
 
 class FlavorConfig {

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/components/loading_comp.dart';
+import 'package:mobile_survey/feature/login/data/user_data_model.dart';
+import 'package:mobile_survey/utility/database_util.dart';
 import '../widget/button_keluar_widget.dart';
 import '../widget/main_content_widget.dart';
 
@@ -10,6 +13,25 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
+  late User userData;
+  bool isLoading = true;
+  @override
+  void initState() {
+    getUserData();
+    super.initState();
+  }
+
+  Future<void> getUserData() async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final personDao = database.userDao;
+    final user = await personDao.findUserById(0);
+    setState(() {
+      userData = user!;
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,28 +58,52 @@ class _AccountScreenState extends State<AccountScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              children: const [
-                MainContentWidget(
-                    title: 'Nama User', content: 'Rahmat Darmawan'),
-                SizedBox(
+              children: [
+                isLoading
+                    ? const LoadingComp(
+                        height: 60,
+                        padding: 0,
+                      )
+                    : MainContentWidget(
+                        title: 'Nama User', content: userData.name),
+                const SizedBox(
                   height: 24,
                 ),
-                MainContentWidget(
-                    title: 'Email', content: 'rahmat.darmawan@mail.com'),
-                SizedBox(
+                isLoading
+                    ? const LoadingComp(
+                        height: 60,
+                        padding: 0,
+                      )
+                    : MainContentWidget(
+                        title: 'Company', content: userData.companyName),
+                const SizedBox(
                   height: 24,
                 ),
-                MainContentWidget(
-                    title: 'Device ID',
-                    content: 'hsfw34g8397hfigfiw77342g3t89fie'),
-                SizedBox(
+                isLoading
+                    ? const LoadingComp(
+                        height: 60,
+                        padding: 0,
+                      )
+                    : MainContentWidget(
+                        title: 'Branch', content: userData.branchName),
+                const SizedBox(
                   height: 24,
                 ),
-                MainContentWidget(title: 'Version', content: 'v1.0.0+01'),
-                SizedBox(
+                isLoading
+                    ? const LoadingComp(
+                        height: 60,
+                        padding: 0,
+                      )
+                    : MainContentWidget(
+                        title: 'Device ID', content: userData.deviceId),
+                const SizedBox(
+                  height: 24,
+                ),
+                const MainContentWidget(title: 'Version', content: 'v1.0.0+01'),
+                const SizedBox(
                   height: 32,
                 ),
-                ButtonKeluarWidget()
+                const ButtonKeluarWidget()
               ],
             ),
           ),

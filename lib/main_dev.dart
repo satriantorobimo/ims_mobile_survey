@@ -23,8 +23,7 @@ Future main() async {
   FlavorConfig(
       flavor: Flavor.DEV,
       values: FlavorValues(
-        baseUrl: '',
-      ));
+          baseUrl: 'http://101.255.160.50:4101/', userId: 'bmltZEE%3D'));
   runZonedGuarded(() {
     runApp(const MyApp());
   }, (Object error, StackTrace stack) {});

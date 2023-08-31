@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/feature/login/data/user_data_model.dart';
 
 class UserInfoHomeWidget extends StatelessWidget {
-  const UserInfoHomeWidget({super.key});
+  final User user;
+  const UserInfoHomeWidget({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -31,18 +33,18 @@ class UserInfoHomeWidget extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     'Welcome back,',
                     style: TextStyle(
                         fontSize: 13,
                         color: Colors.black,
                         fontWeight: FontWeight.w400),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Rahmat Dharmawan',
-                    style: TextStyle(
+                    user.name,
+                    style: const TextStyle(
                         fontSize: 16,
                         color: Colors.black,
                         fontWeight: FontWeight.w600),

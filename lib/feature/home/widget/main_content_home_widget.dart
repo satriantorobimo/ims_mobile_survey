@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
 
 class MainContentHomeWidget extends StatelessWidget {
-  const MainContentHomeWidget({super.key});
+  const MainContentHomeWidget(
+      {super.key,
+      required this.ongoing,
+      required this.returned,
+      required this.done});
+  final int ongoing;
+  final int returned;
+  final int done;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        const SizedBox(height: 44),
         Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
@@ -41,9 +49,9 @@ class MainContentHomeWidget extends StatelessWidget {
                       color: secondaryColor),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '2 Survey',
-                  style: TextStyle(
+                Text(
+                  '$ongoing Survey',
+                  style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Colors.black),
@@ -84,9 +92,9 @@ class MainContentHomeWidget extends StatelessWidget {
                       color: thirdColor),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '0 Survey',
-                  style: TextStyle(
+                Text(
+                  '$returned Survey',
+                  style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Colors.black),
@@ -127,9 +135,9 @@ class MainContentHomeWidget extends StatelessWidget {
                       color: fifthColor),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '16 Survey',
-                  style: TextStyle(
+                Text(
+                  '$done Survey',
+                  style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: Colors.black),

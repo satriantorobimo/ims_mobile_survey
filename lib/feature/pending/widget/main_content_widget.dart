@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/components/color_comp.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 
 class MainContentWidget extends StatelessWidget {
-  const MainContentWidget({super.key});
-
+  const MainContentWidget({super.key, required this.taskList});
+  final TaskList taskList;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -18,17 +20,17 @@ class MainContentWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Dimas',
-            style: TextStyle(
+          Text(
+            taskList.clientName,
+            style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF575551)),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Jl Badak no. 3, Kel. Gayamsari, Kec. Gayamsari, Semarang',
-            style: TextStyle(
+          Text(
+            taskList.type,
+            style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
                 color: Color(0xFF575551)),
@@ -37,9 +39,9 @@ class MainContentWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '081212345678',
-                style: TextStyle(
+              Text(
+                taskList.agreementNo,
+                style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF575551)),
@@ -52,11 +54,11 @@ class MainContentWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(5),
                 child: const Center(
                   child: Text(
-                    'Pending',
+                    'PENDING',
                     style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFFE64354)),
+                        color: primaryColor),
                   ),
                 ),
               )

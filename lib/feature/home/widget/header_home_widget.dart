@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/utility/string_router_util.dart';
 
 class HeaderHomeWidget extends StatelessWidget {
   const HeaderHomeWidget({super.key});
@@ -17,9 +18,14 @@ class HeaderHomeWidget extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
-            child: Image.asset(
-              'assets/icon/inbox_icon.png',
-              width: 20,
+            child: InkWell(
+              onTap: () {
+                Navigator.pushNamed(context, StringRouterUtil.inboxScreenRoute);
+              },
+              child: Image.asset(
+                'assets/icon/inbox_icon.png',
+                width: 20,
+              ),
             ),
           ),
         ],

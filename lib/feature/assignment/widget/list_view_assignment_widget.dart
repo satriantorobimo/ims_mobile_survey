@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/widget/card_widget.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,8 @@ import 'package:provider/provider.dart';
 import '../provider/assignment_provider.dart';
 
 class ListViewAssignmentWidget extends StatefulWidget {
-  const ListViewAssignmentWidget({super.key});
+  const ListViewAssignmentWidget({super.key, required this.taskList});
+  final List<TaskList> taskList;
 
   @override
   State<ListViewAssignmentWidget> createState() =>
@@ -15,7 +17,7 @@ class ListViewAssignmentWidget extends StatefulWidget {
 }
 
 class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
-  void _showDetail() {
+  void _showDetail(TaskList taskList) {
     showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -66,17 +68,17 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                       width: MediaQuery.of(context).size.width * 0.5,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            'Dimas',
-                            style: TextStyle(
+                            taskList.clientName,
+                            style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF575551)),
                           ),
                           Text(
-                            'Jl Badak no. 3, Kel. Gayamsari, Kec. Gayamsari, Semarang',
-                            style: TextStyle(
+                            taskList.type,
+                            style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
                                 color: Color(0xFF575551)),
@@ -102,9 +104,9 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                     ),
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.5,
-                      child: const Text(
-                        '992746583',
-                        style: TextStyle(
+                      child: Text(
+                        taskList.agreementNo,
+                        style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF575551)),
@@ -130,9 +132,9 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                       onTap: _showActionHubungi,
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.5,
-                        child: const Text(
-                          '081272959749',
-                          style: TextStyle(
+                        child: Text(
+                          taskList.mobileNo,
+                          style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF1872FA)),
@@ -157,9 +159,9 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                     ),
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.5,
-                      child: const Text(
-                        'Tempat Kerja',
-                        style: TextStyle(
+                      child: Text(
+                        taskList.location,
+                        style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF575551)),
@@ -171,7 +173,8 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                 InkWell(
                   onTap: () {
                     Navigator.pushNamed(
-                        context, StringRouterUtil.form1ScreenRoute);
+                        context, StringRouterUtil.form1ScreenRoute,
+                        arguments: taskList);
                   },
                   child: Container(
                     width: double.infinity,
@@ -315,34 +318,44 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
             return const SizedBox(height: 12);
           },
           scrollDirection: Axis.vertical,
-          itemCount: assignmentProvider.length,
+          itemCount: widget.taskList.length,
           padding: const EdgeInsets.only(bottom: 24),
           itemBuilder: (context, index) {
             return GestureDetector(
-              onTap: _showDetail,
+              onTap: () {
+                _showDetail(widget.taskList[index]);
+              },
               child: assignmentProvider.index == 0
                   ? CardWidget(
                       color: secondaryColor,
                       colorBg: secondaryColor.withOpacity(0.4),
-                      label: 'Ongoing',
-                      name: 'Donny')
+                      label: widget.taskList[index].status,
+                      name: widget.taskList[index].clientName,
+                      taskList: widget.taskList[index],
+                    )
                   : assignmentProvider.index == 1
-                      ? const CardWidget(
+                      ? CardWidget(
                           color: primaryColor,
-                          colorBg: Color(0xFFFECCCC),
-                          label: 'Waiting',
-                          name: 'Ahmad')
+                          colorBg: const Color(0xFFFECCCC),
+                          label: widget.taskList[index].status,
+                          name: widget.taskList[index].clientName,
+                          taskList: widget.taskList[index],
+                        )
                       : assignmentProvider.index == 2
                           ? CardWidget(
                               color: thirdColor,
                               colorBg: thirdColor.withOpacity(0.4),
-                              label: 'Returned',
-                              name: 'Johnny')
+                              label: widget.taskList[index].status,
+                              name: widget.taskList[index].clientName,
+                              taskList: widget.taskList[index],
+                            )
                           : CardWidget(
                               color: fifthColor,
                               colorBg: fifthColor.withOpacity(0.4),
-                              label: 'Selesai',
-                              name: 'Lala'),
+                              label: widget.taskList[index].status,
+                              name: widget.taskList[index].clientName,
+                              taskList: widget.taskList[index],
+                            ),
             );
           }),
     );

@@ -22,9 +22,7 @@ Future main() async {
   HttpOverrides.global = httpProxy;
   FlavorConfig(
       flavor: Flavor.UAT,
-      values: FlavorValues(
-        baseUrl: '',
-      ));
+      values: FlavorValues(baseUrl: '', userId: 'bmltZEE%3D'));
   runZonedGuarded(() {
     runApp(const MyApp());
   }, (Object error, StackTrace stack) {});
