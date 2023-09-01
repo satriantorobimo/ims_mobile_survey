@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/widget/card_widget.dart';
+import 'package:mobile_survey/feature/form_survey_1/screen/maps_screen.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../provider/assignment_provider.dart';
 
@@ -129,7 +131,9 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: _showActionHubungi,
+                      onTap: () {
+                        _showActionHubungi(taskList.mobileNo);
+                      },
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.5,
                         child: Text(
@@ -198,7 +202,23 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
         });
   }
 
-  void _showActionHubungi() {
+  Future<void> _launchUrl(String urlValue) async {
+    Uri url = Uri.parse(urlValue);
+
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+  Future<void> _launchUrlBrowser(String urlValue) async {
+    Uri url = Uri.parse(urlValue);
+
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+  void _showActionHubungi(String phone) {
     showModalBottomSheet(
         context: context,
         isDismissible: false,
@@ -238,7 +258,9 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            _launchUrl('tel://$phone');
+                          },
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.35,
                             child: Column(
@@ -259,7 +281,10 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            _launchUrlBrowser(
+                                'https://api.whatsapp.com/send/?phone=$phone');
+                          },
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width * 0.35,
                             child: Column(

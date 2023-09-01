@@ -8,6 +8,8 @@ import 'package:mobile_survey/feature/login/data/login_response_model.dart';
 import 'package:mobile_survey/feature/login/data/user_data_model.dart';
 import 'package:mobile_survey/feature/login/domain/repo/login_repo.dart';
 import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/firebase_notification_service.dart';
+import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
@@ -404,6 +406,12 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
     database.close();
   }
 
+  Future<void> subsNotif(String username) async {
+    final FirebaseNotificationService firebaseNotificationService =
+        FirebaseNotificationService();
+    await firebaseNotificationService.fcmSubscribe(username);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener(
@@ -423,6 +431,7 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
                       'username', loginProdiver.username);
                   SharedPrefUtil.saveSharedString(
                       'token', state.loginResponseModel.token!);
+                  subsNotif(loginProdiver.username);
                   Navigator.pushNamedAndRemoveUntil(context,
                       StringRouterUtil.tabScreenRoute, (route) => false);
                 });
@@ -459,9 +468,11 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
         if (loginProdiver.username.isEmpty || loginProdiver.password.isEmpty) {
           _userPassNotFilled();
         } else {
-          loginBloc.add(LoginAttempt(
-              loginRequestModel: LoginRequestModel(
-                  loginProdiver.username, loginProdiver.password, 'abc123')));
+          GeneralUtil.getDeviceId().then((value) {
+            loginBloc.add(LoginAttempt(
+                loginRequestModel: LoginRequestModel(
+                    loginProdiver.username, loginProdiver.password, value)));
+          });
         }
       },
       child: Container(

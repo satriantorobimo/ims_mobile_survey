@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/firebase_notification_service.dart';
 import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 
@@ -21,6 +22,11 @@ class ButtonKeluarWidget extends StatelessWidget {
                   .build();
               final personDao = database.userDao;
               personDao.deleteUserById(0);
+              final FirebaseNotificationService firebaseNotificationService =
+                  FirebaseNotificationService();
+              final String? username =
+                  await SharedPrefUtil.getSharedString('username');
+              await firebaseNotificationService.fcmUnSubscribe(username!);
               // ignore: use_build_context_synchronously
               Navigator.pushNamedAndRemoveUntil(
                   context, StringRouterUtil.loginScreenRoute, (route) => false);

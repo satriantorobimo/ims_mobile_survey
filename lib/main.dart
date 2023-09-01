@@ -7,6 +7,7 @@ import 'package:mobile_survey/feature/login/provider/login_provider.dart';
 import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
 import 'package:mobile_survey/router.dart';
 import 'package:mobile_survey/utility/connection_provider.dart';
+import 'package:mobile_survey/utility/firebase_notification_service.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,20 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final FirebaseNotificationService _firebaseNotificationService =
+      FirebaseNotificationService();
+
+  @override
+  void initState() {
+    handleStartUpNotification();
+
+    super.initState();
+  }
+
+  Future<dynamic> handleStartUpNotification() async {
+    await _firebaseNotificationService.initialize();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(

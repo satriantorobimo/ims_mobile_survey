@@ -85,7 +85,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 17,
+      version: 18,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -111,7 +111,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `AttachmentList` (`ids` INTEGER PRIMARY KEY AUTOINCREMENT, `id` INTEGER NOT NULL, `taskCode` TEXT NOT NULL, `documentCode` TEXT NOT NULL, `documentName` TEXT NOT NULL, `fileName` TEXT NOT NULL, `filePath` TEXT NOT NULL, `type` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `PendingAnswer` (`ids` INTEGER PRIMARY KEY AUTOINCREMENT, `pCode` TEXT NOT NULL, `pAnswer` TEXT, `pAnswerChoiceId` INTEGER)');
+            'CREATE TABLE IF NOT EXISTS `PendingAnswer` (`ids` INTEGER PRIMARY KEY AUTOINCREMENT, `taskCode` TEXT NOT NULL, `pCode` TEXT NOT NULL, `pAnswer` TEXT, `pAnswerChoiceId` INTEGER)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `PendingAttachment` (`ids` INTEGER PRIMARY KEY AUTOINCREMENT, `pModule` TEXT, `pHeader` TEXT, `pChild` TEXT, `pId` INTEGER, `pFilePaths` INTEGER, `pFileName` TEXT, `pBase64` TEXT)');
         await database.execute(
@@ -875,6 +875,7 @@ class _$PendingAnswerDao extends PendingAnswerDao {
             'PendingAnswer',
             (PendingAnswer item) => <String, Object?>{
                   'ids': item.ids,
+                  'taskCode': item.taskCode,
                   'pCode': item.pCode,
                   'pAnswer': item.pAnswer,
                   'pAnswerChoiceId': item.pAnswerChoiceId
@@ -885,6 +886,7 @@ class _$PendingAnswerDao extends PendingAnswerDao {
             ['ids'],
             (PendingAnswer item) => <String, Object?>{
                   'ids': item.ids,
+                  'taskCode': item.taskCode,
                   'pCode': item.pCode,
                   'pAnswer': item.pAnswer,
                   'pAnswerChoiceId': item.pAnswerChoiceId
@@ -895,6 +897,7 @@ class _$PendingAnswerDao extends PendingAnswerDao {
             ['ids'],
             (PendingAnswer item) => <String, Object?>{
                   'ids': item.ids,
+                  'taskCode': item.taskCode,
                   'pCode': item.pCode,
                   'pAnswer': item.pAnswer,
                   'pAnswerChoiceId': item.pAnswerChoiceId
@@ -917,6 +920,7 @@ class _$PendingAnswerDao extends PendingAnswerDao {
     return _queryAdapter.queryList('SELECT * FROM PendingAnswer',
         mapper: (Map<String, Object?> row) => PendingAnswer(
             ids: row['ids'] as int?,
+            taskCode: row['taskCode'] as String,
             pCode: row['pCode'] as String,
             pAnswer: row['pAnswer'] as String?,
             pAnswerChoiceId: row['pAnswerChoiceId'] as int?));
@@ -927,6 +931,7 @@ class _$PendingAnswerDao extends PendingAnswerDao {
     return _queryAdapter.query('SELECT * FROM PendingAnswer WHERE pCode = ?1',
         mapper: (Map<String, Object?> row) => PendingAnswer(
             ids: row['ids'] as int?,
+            taskCode: row['taskCode'] as String,
             pCode: row['pCode'] as String,
             pAnswer: row['pAnswer'] as String?,
             pAnswerChoiceId: row['pAnswerChoiceId'] as int?),
@@ -939,6 +944,21 @@ class _$PendingAnswerDao extends PendingAnswerDao {
         'SELECT * FROM PendingAnswer WHERE pCode = ?1',
         mapper: (Map<String, Object?> row) => PendingAnswer(
             ids: row['ids'] as int?,
+            taskCode: row['taskCode'] as String,
+            pCode: row['pCode'] as String,
+            pAnswer: row['pAnswer'] as String?,
+            pAnswerChoiceId: row['pAnswerChoiceId'] as int?),
+        arguments: [taskCode]);
+  }
+
+  @override
+  Future<List<PendingAnswer>> findPendingAnswerByTaskCode(
+      String taskCode) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM PendingAnswer WHERE taskCode = ?1',
+        mapper: (Map<String, Object?> row) => PendingAnswer(
+            ids: row['ids'] as int?,
+            taskCode: row['taskCode'] as String,
             pCode: row['pCode'] as String,
             pAnswer: row['pAnswer'] as String?,
             pAnswerChoiceId: row['pAnswerChoiceId'] as int?),

@@ -350,14 +350,18 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             8.0),
-                                                    child: Icon(
-                                                      ext == '.PDF'
-                                                          ? Icons.picture_as_pdf
-                                                          : Icons.image,
-                                                      size: 25,
-                                                      color: const Color(
-                                                          0xFF575551),
-                                                    ),
+                                                    child: ext == '.PDF'
+                                                        ? const Icon(
+                                                            Icons
+                                                                .picture_as_pdf,
+                                                            size: 25,
+                                                            color: Color(
+                                                                0xFF575551),
+                                                          )
+                                                        : Image.file(
+                                                            File(data[index]
+                                                                .filePath!),
+                                                            fit: BoxFit.cover),
                                                   )),
                                             )
                                           : GestureDetector(
@@ -445,15 +449,18 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                 ),
               ),
             ),
-            Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: ButtonNext3Widget(
-                  data: data,
-                  results: widget.argsSubmitDataModel.answerResults,
-                  taskList: widget.argsSubmitDataModel.taskList,
-                ))
+            Visibility(
+              visible: data.isNotEmpty,
+              child: Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: ButtonNext3Widget(
+                    data: data,
+                    results: widget.argsSubmitDataModel.answerResults,
+                    taskList: widget.argsSubmitDataModel.taskList,
+                  )),
+            )
           ],
         ),
       ),

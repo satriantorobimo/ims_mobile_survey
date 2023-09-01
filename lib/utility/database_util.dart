@@ -22,7 +22,7 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'database_util.g.dart';
 
-@Database(version: 17, entities: [
+@Database(version: 18, entities: [
   User,
   TaskList,
   QuestionList,

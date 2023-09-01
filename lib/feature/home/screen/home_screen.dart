@@ -162,15 +162,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               await taskListDao.insertTaskList(taskList);
               // log('Task List di db Isi : data ke $i tidak ada dan berhasil isi');
             } else {
-              if (value.status != 'PENDING') {
-                if (value.toJson().toString() != taskList.toJson().toString()) {
-                  await taskListDao.deleteTaskListById(taskList.code);
-                  await taskListDao.insertTaskList(taskList);
-                  // log('Task List di db Isi : data ke $i ada namun ada data ke update dan berhasil isi');
-                } else {
-                  // log('Task List di db Isi : data ke $i ada dan isi sama');
-                }
-              }
+              // if (value.status != 'PENDING') {
+              //   if (value.toJson().toString() != taskList.toJson().toString()) {
+              //     await taskListDao.deleteTaskListById(taskList.code);
+              //     await taskListDao.insertTaskList(taskList);
+              //     // log('Task List di db Isi : data ke $i ada namun ada data ke update dan berhasil isi');
+              //   } else {
+              //     // log('Task List di db Isi : data ke $i ada dan isi sama');
+              //   }
+              // }
             }
           });
         }

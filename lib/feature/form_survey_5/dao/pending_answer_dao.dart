@@ -12,6 +12,9 @@ abstract class PendingAnswerDao {
   @Query('SELECT * FROM PendingAnswer WHERE pCode = :taskCode')
   Future<List<PendingAnswer>> findPendingAnswerByCode(String taskCode);
 
+  @Query('SELECT * FROM PendingAnswer WHERE taskCode = :taskCode')
+  Future<List<PendingAnswer>> findPendingAnswerByTaskCode(String taskCode);
+
   @Query('DELETE FROM PendingAnswer WHERE pCode = :taskCode')
   Future<void> deletePendingAnswerById(String taskCode);
 

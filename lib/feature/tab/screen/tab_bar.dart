@@ -82,7 +82,7 @@ class _TabBarScreenState extends State<TabBarScreen> {
               activeIcon: ImageIcon(
                   AssetImage('assets/icon/pending_active_icon.png'),
                   size: 18),
-              label: 'Pending',
+              label: 'Sync Data',
             ),
             BottomNavigationBarItem(
               icon:

@@ -68,6 +68,25 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
     super.initState();
   }
 
+  Future<void> processDbUpdateTaskDone() async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final taskListDao = database.taskListDao;
+    try {
+      await taskListDao.updateTaskStatusById(
+          widget.argsSubmitDataModel.taskList.code, 'WAITING');
+      await taskListDao
+          .findTaskListById(widget.argsSubmitDataModel.taskList.code)
+          .then((value) {
+        log('Task List : ${value!.code}');
+        log('Task List : ${value.status}');
+      });
+    } catch (e) {
+      log(e.toString());
+    }
+    database.close();
+  }
+
   Future<void> processDbUpdateQuestion() async {
     final database =
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
@@ -96,6 +115,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           i < widget.argsSubmitDataModel.answerResults.length;
           i++) {
         final pendingAnswer = PendingAnswer(
+            taskCode: widget.argsSubmitDataModel.taskList.code,
             pCode: widget.argsSubmitDataModel.answerResults[i].pCode!,
             pAnswer: widget.argsSubmitDataModel.answerResults[i].pAnswer,
             pAnswerChoiceId:
@@ -339,7 +359,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const Center(
-                    child: Text('Batalkan upload',
+                    child: Text('Batalkan simpan',
                         style: TextStyle(
                             fontSize: 12,
                             color: Colors.white,
@@ -404,7 +424,8 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           ),
           actions: [
             InkWell(
-              onTap: () {
+              onTap: () async {
+                await processDbUpdateTaskDone();
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   StringRouterUtil.tabScreenRoute,
@@ -497,7 +518,6 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                       await processDbAttachment();
                       await processDbReference();
                       await processDbSummary();
-                      Navigator.pop(context);
                       _goHomeDraft();
                     },
                     child: Container(
@@ -626,6 +646,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         iconTheme: const IconThemeData(
           color: Colors.black, //change your color here

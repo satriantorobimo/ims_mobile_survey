@@ -403,6 +403,7 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
   Widget build(BuildContext context) {
     var formSurvey4Provider = Provider.of<FormSurvey4Provider>(context);
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         iconTheme: const IconThemeData(
           color: Colors.black, //change your color here

@@ -1,6 +1,14 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import 'package:mobile_survey/utility/network_util.dart';
 import '../widget/button_next_1_widget.dart';
 import '../widget/form_info_1_widget.dart';
 
@@ -13,13 +21,44 @@ class FormSurvey1Screen extends StatefulWidget {
 
 class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
   late String date;
+  late String address = '', area = '', location = '', postal = '';
+  bool isConnect = false;
+  final InternetConnectionChecker internetConnectionChecker =
+      InternetConnectionChecker();
   @override
   void initState() {
     DateTime now = DateTime.now();
     setState(() {
       date = DateFormat('dd/MM/yyyy').format(now);
     });
+    NetworkInfo(internetConnectionChecker).isConnected.then((value) {
+      if (value) {
+        setState(() {
+          isConnect = true;
+        });
+        getAddress();
+      } else {
+        setState(() {
+          isConnect = false;
+        });
+      }
+    });
+
     super.initState();
+  }
+
+  void getAddress() async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+        double.parse(widget.taskList.latitude),
+        double.parse(widget.taskList.longitude));
+
+    Placemark place = placemarks[0];
+    setState(() {
+      address = place.street!;
+      area = place.administrativeArea!;
+      location = place.locality!;
+      postal = place.postalCode!;
+    });
   }
 
   @override
@@ -284,24 +323,85 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                                   ),
                                   child: Column(
                                     children: [
-                                      Image.asset(
-                                          'assets/maps_placeholder.png'),
+                                      !isConnect
+                                          ? Image.asset(
+                                              'assets/maps_placeholder.png')
+                                          : SizedBox(
+                                              height: 150,
+                                              width: double.infinity,
+                                              child: AbsorbPointer(
+                                                absorbing: true,
+                                                child: FlutterMap(
+                                                  options: MapOptions(
+                                                    center: LatLng(
+                                                        double.parse(widget
+                                                            .taskList.latitude),
+                                                        double.parse(widget
+                                                            .taskList
+                                                            .longitude)),
+                                                    zoom: 17.0,
+                                                    keepAlive: false,
+                                                  ),
+                                                  layers: [
+                                                    // TileLayerOptions(
+                                                    //   urlTemplate:
+                                                    //       "https://api.tiles.mapbox.com/v4/"
+                                                    //       "{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}",
+                                                    //   additionalOptions: {
+                                                    //     'accessToken':
+                                                    //         '31232956-93ac-41b1-aa98-c048527f8ea0',
+                                                    //     'id': 'mapbox.streets',
+                                                    //   },
+                                                    // ),
+                                                    TileLayerOptions(
+                                                        urlTemplate:
+                                                            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                                        subdomains: [
+                                                          'a',
+                                                          'b',
+                                                          'c'
+                                                        ]),
+                                                    MarkerLayerOptions(
+                                                      markers: [
+                                                        Marker(
+                                                          width: 30.0,
+                                                          height: 30.0,
+                                                          point: LatLng(
+                                                              double.parse(widget
+                                                                  .taskList
+                                                                  .latitude),
+                                                              double.parse(widget
+                                                                  .taskList
+                                                                  .longitude)),
+                                                          builder: (ctx) =>
+                                                              Image.asset(
+                                                            'assets/icon/pin.png',
+                                                            scale: 1,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
                                       const SizedBox(height: 16),
-                                      const Align(
+                                      Align(
                                         alignment: Alignment.centerLeft,
-                                        child: Text(
-                                            'JL. Majapahit no 45 RT 08 RW 09',
-                                            style: TextStyle(
+                                        child: Text(!isConnect ? '-' : address,
+                                            style: const TextStyle(
                                                 fontSize: 12,
                                                 color: Color(0xFF2D2A26),
                                                 fontWeight: FontWeight.w600)),
                                       ),
                                       const SizedBox(height: 8),
-                                      const Align(
+                                      Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
-                                            'Kel. Gayamsari, Kec. Gayamsari, Kota Semarang',
-                                            style: TextStyle(
+                                            !isConnect
+                                                ? '-'
+                                                : '$area, $location, $postal',
+                                            style: const TextStyle(
                                                 fontSize: 12,
                                                 color: Color(0xFF2D2A26),
                                                 fontWeight: FontWeight.w400)),

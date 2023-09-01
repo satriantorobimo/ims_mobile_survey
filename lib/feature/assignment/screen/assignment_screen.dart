@@ -17,10 +17,10 @@ class _AssignmentScreenState extends State<AssignmentScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _tabs = const [
-    Tab(text: 'Ongoing'),
+    Tab(text: 'Assign'),
     Tab(text: 'Waiting'),
-    Tab(text: 'Returned'),
-    Tab(text: 'Selesai'),
+    Tab(text: 'Return'),
+    Tab(text: 'Done'),
   ];
 
   List<TaskList> ongoing = [];
@@ -117,7 +117,7 @@ class _AssignmentScreenState extends State<AssignmentScreen>
                           borderRadius: BorderRadius.circular(8.0),
                           color: primaryColor),
                       labelColor: Colors.white,
-                      unselectedLabelColor: const Color(0xFFFECCCC),
+                      unselectedLabelColor: Colors.black,
                       tabs: _tabs,
                       onTap: (value) {
                         var assignmentProvider =
