@@ -1,4 +1,3 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_survey/feature/assignment/provider/assignment_provider.dart';
@@ -6,7 +5,6 @@ import 'package:mobile_survey/feature/form_survey_2/provider/form_2_provider.dar
 import 'package:mobile_survey/feature/login/provider/login_provider.dart';
 import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
 import 'package:mobile_survey/router.dart';
-import 'package:mobile_survey/utility/connection_provider.dart';
 import 'package:mobile_survey/utility/firebase_notification_service.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +39,6 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LoginProvider()),
-        ChangeNotifierProvider(create: (_) => ConnectionProvider()),
         ChangeNotifierProvider(create: (_) => TabProvider()),
         ChangeNotifierProvider(create: (_) => AssignmentProvider()),
         ChangeNotifierProvider(create: (_) => Form2Provider()),

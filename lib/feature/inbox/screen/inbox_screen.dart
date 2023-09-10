@@ -7,10 +7,8 @@ import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/components/loading_grid_comp.dart';
 import 'package:mobile_survey/feature/inbox/bloc/inbox_bloc/bloc.dart';
 import 'package:mobile_survey/feature/inbox/domain/repo/inbox_repo.dart';
-import 'package:mobile_survey/utility/connection_provider.dart';
 import 'package:mobile_survey/utility/network_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
-import 'package:provider/provider.dart';
 import '../widget/main_content_widget.dart';
 
 class InboxScreen extends StatefulWidget {
