@@ -165,17 +165,28 @@ class _InboxScreenState extends State<InboxScreen> {
                   if (state is InboxLoaded) {
                     return RefreshIndicator(
                       onRefresh: _pullRefresh,
-                      child: ListView.separated(
-                          shrinkWrap: true,
-                          separatorBuilder: (context, index) {
-                            return const Divider();
-                          },
-                          scrollDirection: Axis.vertical,
-                          itemCount: state.inboxResponseModel.data!.length,
-                          itemBuilder: (context, index) {
-                            return MainContentWidget(
-                                data: state.inboxResponseModel.data![index]);
-                          }),
+                      child: state.inboxResponseModel.data!.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'Tidak Ada Data',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF575551)),
+                              ),
+                            )
+                          : ListView.separated(
+                              shrinkWrap: true,
+                              separatorBuilder: (context, index) {
+                                return const Divider();
+                              },
+                              scrollDirection: Axis.vertical,
+                              itemCount: state.inboxResponseModel.data!.length,
+                              itemBuilder: (context, index) {
+                                return MainContentWidget(
+                                    data:
+                                        state.inboxResponseModel.data![index]);
+                              }),
                     );
                   }
                   if (state is InboxError) {

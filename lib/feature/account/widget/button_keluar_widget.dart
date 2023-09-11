@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/utility/database_util.dart';
-import 'package:mobile_survey/utility/firebase_notification_service.dart';
-import 'package:mobile_survey/utility/shared_pref_util.dart';
-import 'package:mobile_survey/utility/string_router_util.dart';
 
 import '../../../components/color_comp.dart';
 
 class ButtonKeluarWidget extends StatelessWidget {
-  const ButtonKeluarWidget({super.key});
+  const ButtonKeluarWidget({super.key, this.onPressed});
+
+  final Function()? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -15,23 +13,7 @@ class ButtonKeluarWidget extends StatelessWidget {
       width: double.infinity,
       height: 45,
       child: OutlinedButton(
-          onPressed: () async {
-            SharedPrefUtil.deleteSharedPref('token').then((value) async {
-              final database = await $FloorAppDatabase
-                  .databaseBuilder('mobile_survey.db')
-                  .build();
-              final personDao = database.userDao;
-              personDao.deleteUserById(0);
-              final FirebaseNotificationService firebaseNotificationService =
-                  FirebaseNotificationService();
-              final String? username =
-                  await SharedPrefUtil.getSharedString('username');
-              await firebaseNotificationService.fcmUnSubscribe(username!);
-              // ignore: use_build_context_synchronously
-              Navigator.pushNamedAndRemoveUntil(
-                  context, StringRouterUtil.loginScreenRoute, (route) => false);
-            });
-          },
+          onPressed: onPressed,
           // ignore: sort_child_properties_last
           child: const Text(
             'Keluar',

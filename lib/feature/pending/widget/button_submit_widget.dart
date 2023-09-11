@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../components/color_comp.dart';
 
 class ButtonSubmitWidget extends StatelessWidget {
-  const ButtonSubmitWidget({super.key, this.ontap, required this.isConnect});
+  const ButtonSubmitWidget(
+      {super.key, this.ontap, required this.isConnect, required this.isEmpty});
   final Function()? ontap;
   final bool isConnect;
+  final bool isEmpty;
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -14,7 +16,7 @@ class ButtonSubmitWidget extends StatelessWidget {
         width: double.infinity,
         height: 45,
         decoration: BoxDecoration(
-          color: isConnect ? primaryColor : Colors.grey,
+          color: isConnect && isEmpty ? primaryColor : Colors.grey,
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Center(

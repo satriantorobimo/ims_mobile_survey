@@ -50,6 +50,13 @@ class UrlUtil {
     return baseUrl + getUrlLogin2;
   }
 
+  static String urlLogout() => 'api/mobsvy_api/api/SysUserMain/Logout';
+
+  String getUrlLogout() {
+    final String getUrlLogout2 = urlLogout();
+    return baseUrl + getUrlLogout2;
+  }
+
   static String urlTaskList() => 'api/mobsvy_api/api/TaskMain/Getrows';
 
   String getUrlTaskList() {

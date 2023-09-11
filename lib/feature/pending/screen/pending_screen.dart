@@ -339,20 +339,31 @@ class _PendingScreenState extends State<PendingScreen>
             children: [
               isLoading
                   ? Container()
-                  : RefreshIndicator(
-                      onRefresh: _pullRefresh,
-                      child: ListView.separated(
-                          shrinkWrap: true,
-                          separatorBuilder: (context, index) {
-                            return const SizedBox(height: 12);
-                          },
-                          scrollDirection: Axis.vertical,
-                          itemCount: pending.length,
-                          padding: const EdgeInsets.all(16),
-                          itemBuilder: (context, index) {
-                            return MainContentWidget(taskList: pending[index]);
-                          }),
-                    ),
+                  : pending.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'Tidak Ada Data',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF575551)),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _pullRefresh,
+                          child: ListView.separated(
+                              shrinkWrap: true,
+                              separatorBuilder: (context, index) {
+                                return const SizedBox(height: 12);
+                              },
+                              scrollDirection: Axis.vertical,
+                              itemCount: pending.length,
+                              padding: const EdgeInsets.all(16),
+                              itemBuilder: (context, index) {
+                                return MainContentWidget(
+                                    taskList: pending[index]);
+                              }),
+                        ),
               Positioned(
                   bottom: 0,
                   left: 0,
@@ -544,7 +555,8 @@ class _PendingScreenState extends State<PendingScreen>
                       ],
                       child: ButtonSubmitWidget(
                         isConnect: isConnect,
-                        ontap: isConnect
+                        isEmpty: pending.isNotEmpty,
+                        ontap: isConnect && pending.isNotEmpty
                             ? () {
                                 NetworkInfo(internetConnectionChecker)
                                     .isConnected
