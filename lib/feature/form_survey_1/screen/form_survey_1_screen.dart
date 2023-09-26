@@ -8,6 +8,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/network_util.dart';
 import '../widget/button_next_1_widget.dart';
 import '../widget/form_info_1_widget.dart';
@@ -70,9 +71,9 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Form Survey',
-          style: TextStyle(
+        title: Text(
+          'Form Survey ${widget.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+          style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
         actions: const [
@@ -157,40 +158,40 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Container(
-                      width: double.infinity,
-                      height: 14,
-                      color: Colors.grey.withOpacity(0.06),
-                    ),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 24, right: 24),
-                      child: Column(
-                        children: [
-                          FormInfo1Widget(
-                              widthTitle: MediaQuery.of(context).size.width,
-                              title: 'Field 1',
-                              heightContent: 45,
-                              widthContent: MediaQuery.of(context).size.width,
-                              content: 'Isi Field 1'),
-                          const SizedBox(height: 16),
-                          FormInfo1Widget(
-                              widthTitle: MediaQuery.of(context).size.width,
-                              title: 'Field 2',
-                              heightContent: 45,
-                              widthContent: MediaQuery.of(context).size.width,
-                              content: 'Isi Field 2'),
-                          const SizedBox(height: 16),
-                          FormInfo1Widget(
-                              widthTitle: MediaQuery.of(context).size.width,
-                              title: 'Field 3',
-                              heightContent: 45,
-                              widthContent: MediaQuery.of(context).size.width,
-                              content: 'Isi Field 3'),
-                        ],
-                      ),
-                    ),
+                    // const SizedBox(height: 24),
+                    // Container(
+                    //   width: double.infinity,
+                    //   height: 14,
+                    //   color: Colors.grey.withOpacity(0.06),
+                    // ),
+                    // const SizedBox(height: 24),
+                    // Padding(
+                    //   padding: const EdgeInsets.only(left: 24, right: 24),
+                    //   child: Column(
+                    //     children: [
+                    //       FormInfo1Widget(
+                    //           widthTitle: MediaQuery.of(context).size.width,
+                    //           title: 'Field 1',
+                    //           heightContent: 45,
+                    //           widthContent: MediaQuery.of(context).size.width,
+                    //           content: 'Isi Field 1'),
+                    //       const SizedBox(height: 16),
+                    //       FormInfo1Widget(
+                    //           widthTitle: MediaQuery.of(context).size.width,
+                    //           title: 'Field 2',
+                    //           heightContent: 45,
+                    //           widthContent: MediaQuery.of(context).size.width,
+                    //           content: 'Isi Field 2'),
+                    //       const SizedBox(height: 16),
+                    //       FormInfo1Widget(
+                    //           widthTitle: MediaQuery.of(context).size.width,
+                    //           title: 'Field 3',
+                    //           heightContent: 45,
+                    //           widthContent: MediaQuery.of(context).size.width,
+                    //           content: 'Isi Field 3'),
+                    //     ],
+                    //   ),
+                    // ),
                     const SizedBox(height: 24),
                     Container(
                       width: double.infinity,
@@ -294,6 +295,13 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                               )
                             ],
                           ),
+                          const SizedBox(height: 16),
+                          FormInfo1Widget(
+                              widthTitle: MediaQuery.of(context).size.width,
+                              title: 'Survey Code',
+                              heightContent: 45,
+                              widthContent: MediaQuery.of(context).size.width,
+                              content: widget.taskList.code),
                           const SizedBox(height: 16),
                           SizedBox(
                             width: MediaQuery.of(context).size.width,

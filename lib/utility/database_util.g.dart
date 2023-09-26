@@ -85,7 +85,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 18,
+      version: 19,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -364,10 +364,13 @@ class _$TaskListDao extends TaskListDao {
   Future<void> updateTaskStatusById(
     String code,
     String status,
+    String remark,
+    String result,
+    double appraisal,
   ) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE TaskList SET status = ?2 WHERE code = ?1',
-        arguments: [code, status]);
+        'UPDATE TaskList SET status = ?2 AND remark = ?3 AND result = ?4 AND appraisalAmount = ?5 WHERE code = ?1',
+        arguments: [code, status, remark, result, appraisal]);
   }
 
   @override
@@ -480,6 +483,17 @@ class _$QuestionListDao extends QuestionListDao {
     await _queryAdapter.queryNoReturn(
         'DELETE FROM QuestionList WHERE code = ?1',
         arguments: [code]);
+  }
+
+  @override
+  Future<void> updateQuestionListById(
+    String code,
+    String answer,
+    int answerChoiceId,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE QuestionList SET answer = ?2 AND answerChoiceId = ?3 WHERE code = ?1',
+        arguments: [code, answer, answerChoiceId]);
   }
 
   @override

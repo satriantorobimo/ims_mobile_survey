@@ -14,18 +14,26 @@ class TaskListApi {
 
   UrlUtil urlUtil = UrlUtil();
 
-  Future<SuccessUpdateResponseModel> attemptUpdateTask(
-      String code, String type, String remark, double appraisal) async {
+  Future<SuccessUpdateResponseModel> attemptUpdateTask(String code, String type,
+      String remark, double appraisal, String result) async {
     List a = [];
     final String? token = await SharedPrefUtil.getSharedString('token');
     final dynamic ip = await GeneralUtil.getIpAddress();
     final Map<String, String> header =
         urlUtil.getHeaderTypeWithToken(token!, ip['ip']!);
     final Map mapData = {};
-    mapData['p_code'] = code;
-    mapData['p_type'] = type;
-    mapData['p_remark'] = remark;
-    mapData['p_appraisal_amount'] = appraisal;
+    if (type == 'SURVEY') {
+      mapData['p_code'] = code;
+      mapData['p_type'] = type;
+      mapData['p_remark'] = remark;
+      mapData['p_result'] = result;
+    } else {
+      mapData['p_code'] = code;
+      mapData['p_type'] = type;
+      mapData['p_remark'] = remark;
+      mapData['p_appraisal_amount'] = appraisal;
+    }
+
     a.add(mapData);
 
     final json = jsonEncode(a);

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/hubungan_model.dart';
 
 class FormSurvey4Provider with ChangeNotifier {
-  final List<HubunganModel> _listHubunganModel = [];
+  List<HubunganModel> _listHubunganModel = [];
 
   List<HubunganModel> get listHubunganModel => _listHubunganModel;
 
@@ -20,6 +20,20 @@ class FormSurvey4Provider with ChangeNotifier {
 
   void removeHubunganModel(int i) {
     _listHubunganModel.removeAt(i);
+    notifyListeners();
+  }
+
+  void clearHubungan() {
+    _listHubunganModel = [];
+    notifyListeners();
+  }
+
+  void updateHubunganModel(int i, HubunganModel value) {
+    _listHubunganModel[i].name = value.name;
+    _listHubunganModel[i].phoneArea = value.phoneArea;
+    _listHubunganModel[i].phoneNumber = value.phoneNumber;
+    _listHubunganModel[i].remark = value.remark;
+    _listHubunganModel[i].value = value.value;
     notifyListeners();
   }
 }

@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:dropdown_button2/custom_dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:group_radio_button/group_radio_button.dart';
 import 'package:mobile_survey/components/color_comp.dart';
@@ -6,7 +9,6 @@ import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart'
 import 'package:mobile_survey/feature/form_survey_2/data/answer_result_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/widget/button_next_2_widget.dart';
-import 'package:mobile_survey/feature/form_survey_2/widget/drop_down_2_widget.dart';
 import 'package:mobile_survey/utility/database_util.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import '../../../utility/string_router_util.dart';
@@ -35,6 +37,10 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
   }
 
   Widget txtBox(String subLabel, int index, int isMandatory) {
+    if (widget.taskList.status == 'WAITING' ||
+        widget.taskList.status == 'DONE') {
+      controllers[index].text = data[index].answer!;
+    }
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -80,10 +86,21 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
               child: TextFormField(
                 controller: controllers[index],
                 autofocus: false,
-                enabled: true,
-                readOnly: false,
+                enabled: widget.taskList.status == 'WAITING' ||
+                        widget.taskList.status == 'DONE'
+                    ? false
+                    : true,
+                readOnly: widget.taskList.status == 'WAITING' ||
+                        widget.taskList.status == 'DONE'
+                    ? true
+                    : false,
                 textInputAction: TextInputAction.done,
-                style: const TextStyle(fontSize: 15.0, color: Colors.black),
+                style: TextStyle(
+                    fontSize: 15.0,
+                    color: widget.taskList.status == 'WAITING' ||
+                            widget.taskList.status == 'DONE'
+                        ? Colors.grey
+                        : Colors.black),
                 onEditingComplete: () {
                   var isData = results.where(
                       (element) => element.pCode!.contains(data[index].code!));
@@ -108,7 +125,10 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: widget.taskList.status == 'WAITING' ||
+                          widget.taskList.status == 'DONE'
+                      ? Colors.grey.withOpacity(0.05)
+                      : Colors.white,
                   contentPadding:
                       const EdgeInsets.only(left: 14.0, bottom: 6.0, top: 8.0),
                   focusedBorder: OutlineInputBorder(
@@ -135,7 +155,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
     );
   }
 
-  Widget radioBtn(List<AnswerChoice> value, String title, int index) {
+  Widget radioBtn(
+      List<AnswerChoice> value, String title, int index, String code) {
     final List<String> listQuestion =
         value.map((val) => val.questionOptionDesc!).toList();
 
@@ -154,18 +175,24 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: MediaQuery.of(context).size.width * 0.78,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                title,
-                style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF575551),
-                    fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
+              width: MediaQuery.of(context).size.width * 0.78,
+              child: Text.rich(
+                TextSpan(
+                  style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF575551),
+                      fontWeight: FontWeight.w600),
+                  children: <TextSpan>[
+                    TextSpan(text: title),
+                    const TextSpan(
+                        text: ' *',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.red,
+                        )),
+                  ],
+                ),
+              )),
           const SizedBox(height: 16),
           SizedBox(
             height: 50.0,
@@ -173,39 +200,42 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
               direction: Axis.horizontal,
               groupValue: data[index].answer ?? '',
               horizontalAlignment: MainAxisAlignment.spaceAround,
-              onChanged: (values) async {
-                setState(() {
-                  data[index].answer = values;
-                  for (int i = 0; i < value.length; i++) {
-                    if (value[i].questionOptionDesc == values) {
-                      if (results.isEmpty) {
-                        results.add(AnswerResultsModel(
-                            pAnswerChoiceId: value[i].id,
-                            pCode: value[i].taskQuestionCode));
-                      } else {
-                        var isData = results.where((element) => element.pCode!
-                            .contains(data[index]
-                                .answerChoice![i]
-                                .taskQuestionCode!));
-                        if (isData.isNotEmpty) {
-                          results.removeWhere((element) => element.pCode!
-                              .contains(data[index]
-                                  .answerChoice![i]
-                                  .taskQuestionCode!));
-                          results.add(AnswerResultsModel(
-                              pAnswerChoiceId: value[i].id,
-                              pCode: value[i].taskQuestionCode));
-                        } else {
-                          results.add(AnswerResultsModel(
-                              pAnswerChoiceId: value[i].id,
-                              pCode: value[i].taskQuestionCode));
+              onChanged: widget.taskList.status == 'WAITING' ||
+                      widget.taskList.status == 'DONE'
+                  ? null
+                  : (values) async {
+                      setState(() {
+                        data[index].answer = values;
+                        for (int i = 0; i < value.length; i++) {
+                          if (value[i].questionOptionDesc == values) {
+                            if (results.isEmpty) {
+                              results.add(AnswerResultsModel(
+                                  pAnswerChoiceId: value[i].id, pCode: code));
+                            } else {
+                              var isData = results.where((element) =>
+                                  element.pCode!.contains(data[index]
+                                      .answerChoice![i]
+                                      .questionCode!));
+                              if (isData.isNotEmpty) {
+                                results.removeWhere((element) => element.pCode!
+                                    .contains(data[index]
+                                        .answerChoice![i]
+                                        .questionCode!));
+                                results.add(AnswerResultsModel(
+                                    pAnswerChoiceId: value[i].id, pCode: code));
+                              } else {
+                                results.add(AnswerResultsModel(
+                                    pAnswerChoiceId: value[i].id, pCode: code));
+                              }
+                            }
+                          }
                         }
-                      }
-                    }
-                  }
-                });
-              },
-              activeColor: primaryColor,
+                      });
+                    },
+              activeColor: widget.taskList.status == 'WAITING' ||
+                      widget.taskList.status == 'DONE'
+                  ? Colors.grey
+                  : primaryColor,
               items: listQuestion,
               textStyle: const TextStyle(
                 fontSize: 12,
@@ -234,6 +264,7 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
         for (int i = 0; i < value.length; i++) {
           controllers.add(TextEditingController());
           late List<AnswerChoice> answerList = [];
+          log('lalala ${value[i]!.code}');
           await answerListDao
               .findAnswerListByCode(value[i]!.code)
               .then((values) {
@@ -242,7 +273,7 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                 answerList.add(AnswerChoice(
                     id: values[x].id,
                     questionOptionDesc: values[x].questionOptionDesc,
-                    taskQuestionCode: values[x].taskQuestionCode));
+                    questionCode: value[i]!.questionCode));
 
                 if (x == values.length - 1) {
                   datas.add(Data(
@@ -297,9 +328,9 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
           ),
           backgroundColor: Colors.white,
           elevation: 0,
-          title: const Text(
-            'Form Survey',
-            style: TextStyle(
+          title: Text(
+            'Form Survey ${widget.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+            style: const TextStyle(
                 fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
           ),
           actions: const [
@@ -357,10 +388,7 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                 },
                                 scrollDirection: Axis.vertical,
                                 itemCount: data.length,
-                                padding: EdgeInsets.only(
-                                    bottom: MediaQuery.of(context)
-                                        .viewInsets
-                                        .bottom),
+                                padding: const EdgeInsets.only(bottom: 80),
                                 itemBuilder: (context, index) {
                                   final List<String> ddItems = [];
 
@@ -372,78 +400,168 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                         .questionOptionDesc!);
                                   }
                                   return data[index].type == 'DROPDOWN LIST'
-                                      ? DropDown2Widget(
-                                          onChange: (values) {
-                                            setState(() {
-                                              data[index].answer = values;
-                                              for (int i = 0;
-                                                  i <
-                                                      data[index]
-                                                          .answerChoice!
-                                                          .length;
-                                                  i++) {
-                                                if (data[index]
-                                                        .answerChoice![i]
-                                                        .questionOptionDesc ==
-                                                    values) {
-                                                  if (results.isEmpty) {
-                                                    results.add(AnswerResultsModel(
-                                                        pAnswerChoiceId: data[
-                                                                index]
-                                                            .answerChoice![i]
-                                                            .id,
-                                                        pCode: data[index]
-                                                            .answerChoice![i]
-                                                            .taskQuestionCode));
-                                                  } else {
-                                                    var isData = results.where(
-                                                        (element) => element
-                                                            .pCode!
-                                                            .contains(data[
-                                                                    index]
-                                                                .answerChoice![
-                                                                    i]
-                                                                .taskQuestionCode!));
+                                      ? Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              width: 1.0,
+                                            ),
+                                            color: Colors.transparent,
+                                          ),
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            children: [
+                                              SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      0.78,
+                                                  child: Text.rich(
+                                                    TextSpan(
+                                                      style: const TextStyle(
+                                                          fontSize: 14,
+                                                          color:
+                                                              Color(0xFF575551),
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                            text: data[index]
+                                                                .questionDesc!
+                                                                .toLowerCase()
+                                                                .capitalizeOnlyFirstLater()),
+                                                        const TextSpan(
+                                                            text: ' *',
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color: Colors.red,
+                                                            )),
+                                                      ],
+                                                    ),
+                                                  )),
+                                              const SizedBox(height: 16),
+                                              SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.83,
+                                                child: CustomDropdownButton2(
+                                                    onChanged: widget.taskList
+                                                                    .status ==
+                                                                'WAITING' ||
+                                                            widget.taskList
+                                                                    .status ==
+                                                                'DONE'
+                                                        ? null
+                                                        : (values) {
+                                                            setState(() {
+                                                              data[index]
+                                                                      .answer =
+                                                                  values;
+                                                              for (int i = 0;
+                                                                  i <
+                                                                      data[index]
+                                                                          .answerChoice!
+                                                                          .length;
+                                                                  i++) {
+                                                                if (data[index]
+                                                                        .answerChoice![
+                                                                            i]
+                                                                        .questionOptionDesc ==
+                                                                    values) {
+                                                                  if (results
+                                                                      .isEmpty) {
+                                                                    results.add(AnswerResultsModel(
+                                                                        pAnswerChoiceId: data[index]
+                                                                            .answerChoice![
+                                                                                i]
+                                                                            .id,
+                                                                        pCode: data[index]
+                                                                            .code));
+                                                                  } else {
+                                                                    var isData = results.where((element) => element
+                                                                        .pCode!
+                                                                        .contains(data[index]
+                                                                            .answerChoice![i]
+                                                                            .questionCode!));
 
-                                                    if (isData.isNotEmpty) {
-                                                      results.removeWhere(
-                                                          (element) => element
-                                                              .pCode!
-                                                              .contains(data[
-                                                                      index]
-                                                                  .answerChoice![
-                                                                      i]
-                                                                  .taskQuestionCode!));
-                                                      results.add(AnswerResultsModel(
-                                                          pAnswerChoiceId: data[
-                                                                  index]
-                                                              .answerChoice![i]
-                                                              .id,
-                                                          pCode: data[index]
-                                                              .answerChoice![i]
-                                                              .taskQuestionCode));
-                                                    } else {
-                                                      results.add(AnswerResultsModel(
-                                                          pAnswerChoiceId: data[
-                                                                  index]
-                                                              .answerChoice![i]
-                                                              .id,
-                                                          pCode: data[index]
-                                                              .answerChoice![i]
-                                                              .taskQuestionCode));
-                                                    }
-                                                  }
-                                                }
-                                              }
-                                            });
-                                          },
-                                          dropdownItems: ddItems,
-                                          title: data[index]
-                                              .questionDesc!
-                                              .toLowerCase()
-                                              .capitalizeOnlyFirstLater(),
-                                          hint: 'Pilih Jawaban',
-                                          value: data[index].answer)
+                                                                    if (isData
+                                                                        .isNotEmpty) {
+                                                                      results.removeWhere((element) => element
+                                                                          .pCode!
+                                                                          .contains(data[index]
+                                                                              .answerChoice![i]
+                                                                              .questionCode!));
+                                                                      results.add(AnswerResultsModel(
+                                                                          pAnswerChoiceId: data[index]
+                                                                              .answerChoice![
+                                                                                  i]
+                                                                              .id,
+                                                                          pCode:
+                                                                              data[index].code));
+                                                                    } else {
+                                                                      results.add(AnswerResultsModel(
+                                                                          pAnswerChoiceId: data[index]
+                                                                              .answerChoice![
+                                                                                  i]
+                                                                              .id,
+                                                                          pCode:
+                                                                              data[index].code));
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            });
+                                                          },
+                                                    dropdownItems: ddItems,
+                                                    buttonWidth:
+                                                        double.infinity,
+                                                    buttonHeight: 47,
+                                                    dropdownWidth:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.78,
+                                                    icon: const Icon(
+                                                      Icons
+                                                          .keyboard_arrow_down_rounded,
+                                                    ),
+                                                    iconSize: 20,
+                                                    buttonDecoration:
+                                                        BoxDecoration(
+                                                      color: widget.taskList
+                                                                      .status ==
+                                                                  'WAITING' ||
+                                                              widget.taskList
+                                                                      .status ==
+                                                                  'DONE'
+                                                          ? Colors.grey
+                                                              .withOpacity(0.05)
+                                                          : Colors.white,
+                                                      border: Border.all(
+                                                          width: 1.0,
+                                                          color: Colors.grey
+                                                              .withOpacity(
+                                                                  0.5)),
+                                                      borderRadius:
+                                                          const BorderRadius
+                                                                  .all(
+                                                              Radius.circular(
+                                                                  10.0)),
+                                                    ),
+                                                    hint: 'Pilih Jawaban',
+                                                    value: data[index].answer ==
+                                                            ""
+                                                        ? null
+                                                        : data[index].answer),
+                                              ),
+                                            ],
+                                          ),
+                                        )
                                       : data[index].type == 'RADIO BUTTON'
                                           ? radioBtn(
                                               data[index].answerChoice!,
@@ -451,7 +569,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                   .questionDesc!
                                                   .toLowerCase()
                                                   .capitalizeOnlyFirstLater(),
-                                              index)
+                                              index,
+                                              data[index].code!)
                                           : data[index].type == 'LOOKUP LIST'
                                               ? DropDownSearchWidget(
                                                   title: data[index]
@@ -460,92 +579,85 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                       .capitalizeOnlyFirstLater(),
                                                   hint: 'Pilih Jawaban',
                                                   value: data[index].answer,
-                                                  onTap: () async {
-                                                    final result =
-                                                        await Navigator.pushNamed(
-                                                            context,
-                                                            StringRouterUtil
-                                                                .searchDropdownScreenRoute,
-                                                            arguments: data[
-                                                                    index]
-                                                                .answerChoice);
-
-                                                    if (result != null) {
-                                                      setState(() {
-                                                        data[index].answer =
-                                                            result.toString();
-                                                      });
-                                                      for (int i = 0;
-                                                          i <
-                                                              data[index]
-                                                                  .answerChoice!
-                                                                  .length;
-                                                          i++) {
-                                                        if (data[index]
-                                                                .answerChoice![
-                                                                    i]
-                                                                .questionOptionDesc ==
-                                                            result) {
-                                                          if (results.isEmpty) {
-                                                            results.add(AnswerResultsModel(
-                                                                pAnswerChoiceId:
-                                                                    data[index]
-                                                                        .answerChoice![
-                                                                            i]
-                                                                        .id,
-                                                                pCode: data[
-                                                                        index]
-                                                                    .answerChoice![
-                                                                        i]
-                                                                    .taskQuestionCode));
-                                                          } else {
-                                                            var isData = results.where(
-                                                                (element) => element
-                                                                    .pCode!
-                                                                    .contains(data[
-                                                                            index]
-                                                                        .answerChoice![
-                                                                            i]
-                                                                        .taskQuestionCode!));
-
-                                                            if (isData
-                                                                .isNotEmpty) {
-                                                              results.removeWhere((element) => element
-                                                                  .pCode!
-                                                                  .contains(data[
+                                                  enabled:
+                                                      widget.taskList.status ==
+                                                                  'WAITING' ||
+                                                              widget.taskList
+                                                                      .status ==
+                                                                  'DONE'
+                                                          ? false
+                                                          : true,
+                                                  onTap:
+                                                      widget.taskList.status ==
+                                                                  'WAITING' ||
+                                                              widget.taskList
+                                                                      .status ==
+                                                                  'DONE'
+                                                          ? null
+                                                          : () async {
+                                                              final result = await Navigator.pushNamed(
+                                                                  context,
+                                                                  StringRouterUtil
+                                                                      .searchDropdownScreenRoute,
+                                                                  arguments: data[
                                                                           index]
-                                                                      .answerChoice![
-                                                                          i]
-                                                                      .taskQuestionCode!));
-                                                              results.add(AnswerResultsModel(
-                                                                  pAnswerChoiceId:
-                                                                      data[index]
+                                                                      .answerChoice);
+
+                                                              if (result !=
+                                                                  null) {
+                                                                setState(() {
+                                                                  data[index]
+                                                                          .answer =
+                                                                      result
+                                                                          .toString();
+                                                                });
+                                                                for (int i = 0;
+                                                                    i <
+                                                                        data[index]
+                                                                            .answerChoice!
+                                                                            .length;
+                                                                    i++) {
+                                                                  if (data[index]
                                                                           .answerChoice![
                                                                               i]
-                                                                          .id,
-                                                                  pCode: data[
-                                                                          index]
-                                                                      .answerChoice![
-                                                                          i]
-                                                                      .taskQuestionCode));
-                                                            } else {
-                                                              results.add(AnswerResultsModel(
-                                                                  pAnswerChoiceId:
-                                                                      data[index]
-                                                                          .answerChoice![
-                                                                              i]
-                                                                          .id,
-                                                                  pCode: data[
-                                                                          index]
-                                                                      .answerChoice![
-                                                                          i]
-                                                                      .taskQuestionCode));
-                                                            }
-                                                          }
-                                                        }
-                                                      }
-                                                    }
-                                                  },
+                                                                          .questionOptionDesc ==
+                                                                      result) {
+                                                                    if (results
+                                                                        .isEmpty) {
+                                                                      results.add(AnswerResultsModel(
+                                                                          pAnswerChoiceId: data[index]
+                                                                              .answerChoice![
+                                                                                  i]
+                                                                              .id,
+                                                                          pCode:
+                                                                              data[index].code));
+                                                                    } else {
+                                                                      var isData = results.where((element) => element
+                                                                          .pCode!
+                                                                          .contains(data[index]
+                                                                              .answerChoice![i]
+                                                                              .questionCode!));
+
+                                                                      if (isData
+                                                                          .isNotEmpty) {
+                                                                        results.removeWhere((element) => element
+                                                                            .pCode!
+                                                                            .contains(data[index].answerChoice![i].questionCode!));
+                                                                        results.add(AnswerResultsModel(
+                                                                            pAnswerChoiceId:
+                                                                                data[index].answerChoice![i].id,
+                                                                            pCode: data[index].code));
+                                                                      } else {
+                                                                        results.add(AnswerResultsModel(
+                                                                            pAnswerChoiceId:
+                                                                                data[index].answerChoice![i].id,
+                                                                            pCode: data[index].code));
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            },
                                                 )
                                               : txtBox(
                                                   data[index]
@@ -566,6 +678,7 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                   child: ButtonNext2Widget(
                     results: results,
                     taskList: widget.taskList,
+                    lengthQuestion: data.length,
                   ))
             ],
           ),

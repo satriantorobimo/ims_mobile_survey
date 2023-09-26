@@ -156,7 +156,8 @@ class _PendingScreenState extends State<PendingScreen>
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.taskListDao;
     try {
-      await taskListDao.updateTaskStatusById(taskCode, 'WAITING');
+      await taskListDao.updateTaskStatusById(taskCode, 'WAITING',
+          pendingSummary.remark, pendingSummary.notes!, pendingSummary.value!);
     } catch (e) {
       log(e.toString());
     }
@@ -298,6 +299,7 @@ class _PendingScreenState extends State<PendingScreen>
     await getAttachment(pending[taskCount].code);
     await getReference(pending[taskCount].code);
     await getSummary(pending[taskCount].code);
+
     updateQuestionBloc.add(UpdateQuestionAttempt(AnswerResultsModel(
         pAnswer: answer[questionCount].pAnswer,
         pAnswerChoiceId: answer[questionCount].pAnswerChoiceId,
@@ -388,25 +390,53 @@ class _PendingScreenState extends State<PendingScreen>
                                         pCode: answer[questionCount].pCode)));
                               } else {
                                 log('Start upload $attachmentCount');
-                                uploadAttachmentBloc.add(
-                                    UploadAttachmentAttempt(
-                                        UploadAttachmentModel(
-                                            pBase64: attachment[attachmentCount]
-                                                .pBase64,
-                                            pChild: attachment[attachmentCount]
-                                                .pChild,
-                                            pFileName:
-                                                attachment[attachmentCount]
-                                                    .pFileName,
-                                            pFilePaths:
-                                                attachment[attachmentCount]
-                                                    .pFilePaths,
-                                            pHeader: attachment[attachmentCount]
-                                                .pHeader,
-                                            pId:
-                                                attachment[attachmentCount].pId,
-                                            pModule: attachment[attachmentCount]
-                                                .pModule)));
+                                if (attachment.isNotEmpty) {
+                                  uploadAttachmentBloc.add(
+                                      UploadAttachmentAttempt(
+                                          UploadAttachmentModel(
+                                              pBase64: attachment[
+                                                      attachmentCount]
+                                                  .pBase64,
+                                              pChild: attachment[
+                                                      attachmentCount]
+                                                  .pChild,
+                                              pFileName:
+                                                  attachment[attachmentCount]
+                                                      .pFileName,
+                                              pFilePaths:
+                                                  attachment[attachmentCount]
+                                                      .pFilePaths,
+                                              pHeader:
+                                                  attachment[
+                                                          attachmentCount]
+                                                      .pHeader,
+                                              pId:
+                                                  attachment[
+                                                          attachmentCount]
+                                                      .pId,
+                                              pModule:
+                                                  attachment[attachmentCount]
+                                                      .pModule)));
+                                } else if (reference.isNotEmpty) {
+                                  referenceBloc.add(InsertReferenceAttempt(
+                                      HubunganModel(
+                                          name: reference[refCount].name,
+                                          phoneArea:
+                                              reference[refCount].phoneArea,
+                                          phoneNumber:
+                                              reference[refCount].phoneNumber,
+                                          remark: reference[refCount].remark,
+                                          taskCode:
+                                              reference[refCount].taskCode,
+                                          value: reference[refCount].value)));
+                                } else {
+                                  updateTaskBloc.add(UpdateTaskAttempt(
+                                      pending[taskCount].code,
+                                      pending[taskCount].type,
+                                      pendingSummary.remark,
+                                      pendingSummary.value ?? 0,
+                                      pendingSummary.notes!));
+                                }
                               }
                             }
                             if (state is UpdateQuestionError) {
@@ -449,26 +479,36 @@ class _PendingScreenState extends State<PendingScreen>
                                             pModule: attachment[attachmentCount]
                                                 .pModule)));
                               } else {
-                                if (pending[taskCount].type == 'APPRAISAL') {
+                                if (pending[taskCount].type == 'SURVEY') {
                                   log('Start update task');
                                   updateTaskBloc.add(UpdateTaskAttempt(
                                       pending[taskCount].code,
                                       pending[taskCount].type,
                                       pendingSummary.remark,
-                                      pendingSummary.value ?? 0));
+                                      pendingSummary.value ?? 0,
+                                      pendingSummary.notes!));
                                 } else {
                                   log('Start insert ref $refCount');
-                                  referenceBloc.add(InsertReferenceAttempt(
-                                      HubunganModel(
-                                          name: reference[refCount].name,
-                                          phoneArea:
-                                              reference[refCount].phoneArea,
-                                          phoneNumber:
-                                              reference[refCount].phoneNumber,
-                                          remark: reference[refCount].remark,
-                                          taskCode:
-                                              reference[refCount].taskCode,
-                                          value: reference[refCount].value)));
+                                  if (reference.isNotEmpty) {
+                                    referenceBloc.add(InsertReferenceAttempt(
+                                        HubunganModel(
+                                            name: reference[refCount].name,
+                                            phoneArea:
+                                                reference[refCount].phoneArea,
+                                            phoneNumber:
+                                                reference[refCount].phoneNumber,
+                                            remark: reference[refCount].remark,
+                                            taskCode:
+                                                reference[refCount].taskCode,
+                                            value: reference[refCount].value)));
+                                  } else {
+                                    updateTaskBloc.add(UpdateTaskAttempt(
+                                        pending[taskCount].code,
+                                        pending[taskCount].type,
+                                        pendingSummary.remark,
+                                        pendingSummary.value ?? 0,
+                                        pendingSummary.notes!));
+                                  }
                                 }
                               }
                             }
@@ -508,7 +548,8 @@ class _PendingScreenState extends State<PendingScreen>
                                     pending[taskCount].code,
                                     pending[taskCount].type,
                                     pendingSummary.remark,
-                                    pendingSummary.value ?? 0));
+                                    pendingSummary.value ?? 0,
+                                    pendingSummary.notes!));
                               }
                             }
                             if (state is ReferenceError) {

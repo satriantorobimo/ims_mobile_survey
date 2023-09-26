@@ -27,25 +27,101 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
 
   late List<Data> data = [];
 
-  Future pickImage(String type, int index) async {
+  Future<bool> pickImage(String type, int index) async {
     try {
+      var maxFileSizeInBytes = 5 * 1048576;
       ImagePicker imagePicker = ImagePicker();
       XFile? pickedImage = await imagePicker.pickImage(
         source: type == 'gallery' ? ImageSource.gallery : ImageSource.camera,
         imageQuality: 90,
       );
-      if (pickedImage == null) return;
-      String basename = path.basename(pickedImage.path);
-      setState(() {
-        data[index].filePath = pickedImage.path;
-        data[index].fileName = basename;
-        data[index].newData = true;
-      });
+      if (pickedImage == null) return false;
+      var imagePath = await pickedImage.readAsBytes();
+      var fileSize = imagePath.length; // Get the file size in bytes
+      if (fileSize <= maxFileSizeInBytes) {
+        String basename = path.basename(pickedImage.path);
+        setState(() {
+          data[index].filePath = pickedImage.path;
+          data[index].fileName = basename;
+          data[index].newData = true;
+        });
+      } else {
+        return false;
+      }
 
-      return;
+      return true;
     } on PlatformException catch (e) {
       log('Failed to pick image: $e');
+      return false;
     }
+  }
+
+  void _overSize() {
+    showDialog(
+      useSafeArea: true,
+      barrierDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20.0))),
+          actionsPadding:
+              const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          title: Container(),
+          titlePadding: const EdgeInsets.only(top: 20, left: 20),
+          contentPadding: const EdgeInsets.only(
+            top: 0,
+            bottom: 24,
+            left: 24,
+            right: 24,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                'Size File Terlalu Besar',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF575551)),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Maximal size file adalah 5MB',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF575551)),
+              ),
+            ],
+          ),
+          actions: [
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Container(
+                width: double.infinity,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                    child: Text('Ok',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600))),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _imageAction(int index) {
@@ -87,7 +163,11 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                   GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
-                      pickImage('gallery', index);
+                      pickImage('gallery', index).then((value) {
+                        if (!value) {
+                          _overSize();
+                        }
+                      });
                       // _pickFotoFromGallery(type, isRetake, index);
                     },
                     child: SizedBox(
@@ -217,15 +297,16 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         iconTheme: const IconThemeData(
           color: Colors.black, //change your color here
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Form Survey',
-          style: TextStyle(
+        title: Text(
+          'Form Survey ${widget.argsSubmitDataModel.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+          style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
         actions: const [
@@ -243,7 +324,6 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -255,36 +335,36 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
           children: [
             Container(
               margin: const EdgeInsets.only(top: 8),
-              padding: const EdgeInsets.only(bottom: 80),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 24, right: 24),
-                  child: Column(
-                    children: [
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Attachment',
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF2D2A26),
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      isLoading
-                          ? const LoadingGridComp(
-                              height: 90,
-                              length: 5,
-                            )
-                          : ListView.separated(
+              height: MediaQuery.of(context).size.height * 0.9,
+              padding: const EdgeInsets.only(left: 24, right: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Attachment',
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF2D2A26),
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  isLoading
+                      ? const LoadingGridComp(
+                          height: 90,
+                          length: 5,
+                        )
+                      : Expanded(
+                          child: ListView.separated(
                               shrinkWrap: true,
                               separatorBuilder: (context, index) {
                                 return const SizedBox(height: 12);
                               },
                               scrollDirection: Axis.vertical,
                               itemCount: data.isEmpty ? 0 : data.length,
-                              padding: const EdgeInsets.only(bottom: 24),
+                              padding: const EdgeInsets.only(bottom: 80),
                               itemBuilder: (context, index) {
                                 final ext =
                                     path.extension(data[index].fileName!);
@@ -358,10 +438,25 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                             color: Color(
                                                                 0xFF575551),
                                                           )
-                                                        : Image.file(
-                                                            File(data[index]
-                                                                .filePath!),
-                                                            fit: BoxFit.cover),
+                                                        : path.extension(data[
+                                                                            index]
+                                                                        .filePath!) ==
+                                                                    '.jpg' ||
+                                                                path.extension(data[
+                                                                            index]
+                                                                        .filePath!) ==
+                                                                    '.png'
+                                                            ? Image.file(
+                                                                File(data[index]
+                                                                    .filePath!),
+                                                                fit: BoxFit
+                                                                    .cover)
+                                                            : const Icon(
+                                                                Icons.photo,
+                                                                size: 25,
+                                                                color: Color(
+                                                                    0xFF575551),
+                                                              ),
                                                   )),
                                             )
                                           : GestureDetector(
@@ -394,28 +489,33 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                               ),
                                             ),
                                       const SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            data[index]
-                                                .documentName!
-                                                .toLowerCase()
-                                                .capitalizeOnlyFirstLater(),
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF2D2A26),
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                          Text(
-                                            'Ambil ${data[index].documentName!.toLowerCase().capitalizeOnlyFirstLater()}',
-                                            style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Color(0xFF575551),
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ],
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.4,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              data[index]
+                                                  .documentName!
+                                                  .toLowerCase()
+                                                  .capitalizeOnlyFirstLater(),
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Color(0xFF2D2A26),
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                            Text(
+                                              'Ambil ${data[index].documentName!.toLowerCase().capitalizeOnlyFirstLater()}',
+                                              style: const TextStyle(
+                                                  fontSize: 10,
+                                                  color: Color(0xFF575551),
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                       const SizedBox(width: 8),
                                       data[index].filePath != "" &&
@@ -425,14 +525,36 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                 alignment:
                                                     Alignment.bottomRight,
                                                 child: GestureDetector(
-                                                  onTap: () {
-                                                    _imageAction(index);
-                                                  },
-                                                  child: const Text(
+                                                  onTap: widget
+                                                                  .argsSubmitDataModel
+                                                                  .taskList
+                                                                  .status ==
+                                                              'WAITING' ||
+                                                          widget
+                                                                  .argsSubmitDataModel
+                                                                  .taskList
+                                                                  .status ==
+                                                              'DONE'
+                                                      ? null
+                                                      : () {
+                                                          _imageAction(index);
+                                                        },
+                                                  child: Text(
                                                     'Retake',
                                                     style: TextStyle(
                                                         fontSize: 12,
-                                                        color: primaryColor,
+                                                        color: widget
+                                                                        .argsSubmitDataModel
+                                                                        .taskList
+                                                                        .status ==
+                                                                    'WAITING' ||
+                                                                widget
+                                                                        .argsSubmitDataModel
+                                                                        .taskList
+                                                                        .status ==
+                                                                    'DONE'
+                                                            ? Colors.grey
+                                                            : primaryColor,
                                                         fontWeight:
                                                             FontWeight.w600),
                                                   ),
@@ -443,10 +565,9 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                     ],
                                   ),
                                 );
-                              })
-                    ],
-                  ),
-                ),
+                              }),
+                        )
+                ],
               ),
             ),
             Visibility(

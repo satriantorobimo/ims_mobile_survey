@@ -15,8 +15,10 @@ abstract class TaskListDao {
   @Query('DELETE FROM TaskList WHERE code = :code')
   Future<void> deleteTaskListById(String code);
 
-  @Query('UPDATE TaskList SET status = :status WHERE code = :code')
-  Future<void> updateTaskStatusById(String code, String status);
+  @Query(
+      'UPDATE TaskList SET status = :status AND remark = :remark AND result = :result AND appraisalAmount = :appraisal WHERE code = :code')
+  Future<void> updateTaskStatusById(String code, String status, String remark,
+      String result, double appraisal);
 
   @insert
   Future<void> insertTaskList(TaskList user);

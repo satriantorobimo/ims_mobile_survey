@@ -12,8 +12,8 @@ class UpdateTaskBloc extends Bloc<UpdateTaskEvent, UpdateTaskState> {
         try {
           emit(UpdateTaskLoading());
           final successUpdateResponseModel =
-              await taskListRepo.attemptUpdateTask(
-                  event.code, event.type, event.remark, event.appraisal);
+              await taskListRepo.attemptUpdateTask(event.code, event.type,
+                  event.remark, event.appraisal, event.result);
           if (successUpdateResponseModel!.result == 1) {
             emit(UpdateTaskLoaded(
                 successUpdateResponseModel: successUpdateResponseModel));

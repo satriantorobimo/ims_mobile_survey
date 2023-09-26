@@ -174,22 +174,16 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                 ),
                 const SizedBox(height: 24),
                 InkWell(
-                  onTap: taskList.status.toLowerCase() == 'assign' &&
-                          taskList.status.toLowerCase() == 'returned'
-                      ? () {
-                          Navigator.pushNamed(
-                              context, StringRouterUtil.form1ScreenRoute,
-                              arguments: taskList);
-                        }
-                      : null,
+                  onTap: () {
+                    Navigator.pushNamed(
+                        context, StringRouterUtil.form1ScreenRoute,
+                        arguments: taskList);
+                  },
                   child: Container(
                     width: double.infinity,
                     height: 45,
                     decoration: BoxDecoration(
-                      color: taskList.status.toLowerCase() == 'assign' &&
-                              taskList.status.toLowerCase() == 'returned'
-                          ? primaryColor
-                          : Colors.grey,
+                      color: primaryColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Center(
@@ -339,65 +333,84 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
   @override
   Widget build(BuildContext context) {
     var assignmentProvider =
-        Provider.of<AssignmentProvider>(context, listen: false);
+        Provider.of<AssignmentProvider>(context, listen: true);
+    List<TaskList> task = [];
+
+    if (assignmentProvider.filter == 'Survey') {
+      task.addAll(widget.taskList);
+      task.removeWhere((element) => element.type == 'APPRAISAL');
+    } else if (assignmentProvider.filter == 'Appraisal') {
+      task.addAll(widget.taskList);
+      task.removeWhere((element) => element.type == 'SURVEY');
+    } else {
+      task.addAll(widget.taskList);
+    }
     return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: widget.taskList.isEmpty
-          ? const Center(
-              child: Text(
-                'Tidak Ada Data',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF575551)),
-              ),
-            )
-          : ListView.separated(
-              shrinkWrap: true,
-              separatorBuilder: (context, index) {
-                return const SizedBox(height: 12);
-              },
-              scrollDirection: Axis.vertical,
-              itemCount: widget.taskList.length,
-              padding: const EdgeInsets.only(bottom: 24),
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    _showDetail(widget.taskList[index]);
-                  },
-                  child: assignmentProvider.index == 0
-                      ? CardWidget(
-                          color: secondaryColor,
-                          colorBg: secondaryColor.withOpacity(0.4),
-                          label: widget.taskList[index].status,
-                          name: widget.taskList[index].clientName,
-                          taskList: widget.taskList[index],
-                        )
-                      : assignmentProvider.index == 1
-                          ? CardWidget(
-                              color: primaryColor,
-                              colorBg: const Color(0xFFFECCCC),
-                              label: widget.taskList[index].status,
-                              name: widget.taskList[index].clientName,
-                              taskList: widget.taskList[index],
-                            )
-                          : assignmentProvider.index == 2
-                              ? CardWidget(
-                                  color: thirdColor,
-                                  colorBg: thirdColor.withOpacity(0.4),
-                                  label: widget.taskList[index].status,
-                                  name: widget.taskList[index].clientName,
-                                  taskList: widget.taskList[index],
-                                )
-                              : CardWidget(
-                                  color: fifthColor,
-                                  colorBg: fifthColor.withOpacity(0.4),
-                                  label: widget.taskList[index].status,
-                                  name: widget.taskList[index].clientName,
-                                  taskList: widget.taskList[index],
-                                ),
-                );
-              }),
-    );
+        padding: const EdgeInsets.only(top: 24),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              if (task.isEmpty) ...[
+                const Center(
+                  child: Text(
+                    'Tidak Ada Data',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF575551)),
+                  ),
+                )
+              ] else ...[
+                ListView.separated(
+                    shrinkWrap: true,
+                    separatorBuilder: (context, index) {
+                      return const SizedBox(height: 12);
+                    },
+                    scrollDirection: Axis.vertical,
+                    itemCount: task.length,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 24),
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        onTap: () {
+                          _showDetail(task[index]);
+                        },
+                        child: assignmentProvider.index == 0
+                            ? CardWidget(
+                                color: secondaryColor,
+                                colorBg: secondaryColor.withOpacity(0.4),
+                                label: task[index].status,
+                                name: task[index].clientName,
+                                taskList: task[index],
+                              )
+                            : assignmentProvider.index == 1
+                                ? CardWidget(
+                                    color: primaryColor,
+                                    colorBg: const Color(0xFFFECCCC),
+                                    label: task[index].status,
+                                    name: task[index].clientName,
+                                    taskList: task[index],
+                                  )
+                                : assignmentProvider.index == 2
+                                    ? CardWidget(
+                                        color: thirdColor,
+                                        colorBg: thirdColor.withOpacity(0.4),
+                                        label: task[index].status,
+                                        name: task[index].clientName,
+                                        taskList: task[index],
+                                      )
+                                    : CardWidget(
+                                        color: fifthColor,
+                                        colorBg: fifthColor.withOpacity(0.4),
+                                        label: task[index].status,
+                                        name: task[index].clientName,
+                                        taskList: task[index],
+                                      ),
+                      );
+                    }),
+              ]
+            ],
+          ),
+        ));
   }
 }

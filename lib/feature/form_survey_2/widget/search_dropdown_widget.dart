@@ -160,6 +160,7 @@ class _SearchDropDownWidgetState extends State<SearchDropDownWidget> {
                                 ? value[index].questionOptionDesc!
                                 : valueSearch[index];
                           });
+                          Navigator.pop(context, selectedValue);
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),

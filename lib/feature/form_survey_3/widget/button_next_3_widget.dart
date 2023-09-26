@@ -73,7 +73,7 @@ class ButtonNext3Widget extends StatelessWidget {
                     // ignore: use_build_context_synchronously
                     Navigator.pushNamed(
                         context,
-                        taskList.type == 'APPRAISAL'
+                        taskList.type == 'SURVEY'
                             ? StringRouterUtil.form5ScreenRoute
                             : StringRouterUtil.form4ScreenRoute,
                         arguments: ArgsSubmitDataModel(

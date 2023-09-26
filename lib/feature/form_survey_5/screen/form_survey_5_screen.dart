@@ -14,12 +14,15 @@ import 'package:mobile_survey/feature/form_survey_3/bloc/upload_attachment_bloc/
 import 'package:mobile_survey/feature/form_survey_3/domain/repo/attachment_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_4/bloc/reference_bloc/bloc.dart';
 import 'package:mobile_survey/feature/form_survey_4/domain/repo/reference_repo.dart';
+import 'package:mobile_survey/feature/form_survey_4/provider/form_survey_4_provider.dart';
 import 'package:mobile_survey/feature/form_survey_5/data/pending_answer_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_5/data/pending_attachment_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_5/data/pending_reference_data_mode.dart';
 import 'package:mobile_survey/feature/form_survey_5/data/pending_summary_data_model.dart';
 import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/network_util.dart';
+import 'package:provider/provider.dart';
 
 import '../../../components/color_comp.dart';
 import '../../../utility/string_router_util.dart';
@@ -65,35 +68,140 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
     animationController =
         AnimationController(duration: const Duration(seconds: 2), vsync: this);
     animationController!.repeat();
+    if (widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+        widget.argsSubmitDataModel.taskList.status == 'RETURN' ||
+        widget.argsSubmitDataModel.taskList.status == 'DONE') {
+      if (widget.argsSubmitDataModel.taskList.type == 'SURVEY') {
+        if (widget.argsSubmitDataModel.taskList.remark != null ||
+            widget.argsSubmitDataModel.taskList.result != null ||
+            widget.argsSubmitDataModel.taskList.remark != '' ||
+            widget.argsSubmitDataModel.taskList.result != '') {
+          setState(() {
+            _notesCtrl.text = widget.argsSubmitDataModel.taskList.remark!;
+            _sesuaiCtrl.text = widget.argsSubmitDataModel.taskList.result!;
+          });
+        }
+      } else {
+        if (widget.argsSubmitDataModel.taskList.remark != null ||
+            widget.argsSubmitDataModel.taskList.appraisalAmount != null ||
+            widget.argsSubmitDataModel.taskList.remark != '' ||
+            widget.argsSubmitDataModel.taskList.appraisalAmount != 0.0) {
+          setState(() {
+            _notesCtrl.text = widget.argsSubmitDataModel.taskList.remark!;
+            _valueCtrl.text =
+                widget.argsSubmitDataModel.taskList.appraisalAmount!.toString();
+          });
+        }
+      }
+    }
     super.initState();
+  }
+
+  void _notComplete() {
+    showDialog(
+      useSafeArea: true,
+      barrierDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20.0))),
+          actionsPadding:
+              const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          title: Container(),
+          titlePadding: const EdgeInsets.only(top: 20, left: 20),
+          contentPadding: const EdgeInsets.only(
+            top: 0,
+            bottom: 24,
+            left: 24,
+            right: 24,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                'Jawaban anda belum lengkap',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF575551)),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Silahkan periksa kembali',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF575551)),
+              ),
+            ],
+          ),
+          actions: [
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Container(
+                width: double.infinity,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                    child: Text('Ok',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600))),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> processDbUpdateTaskDone() async {
     final database =
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.taskListDao;
+    final questionDao = database.questionListDao;
     try {
       await taskListDao.updateTaskStatusById(
-          widget.argsSubmitDataModel.taskList.code, 'WAITING');
-      await taskListDao
-          .findTaskListById(widget.argsSubmitDataModel.taskList.code)
-          .then((value) {
-        log('Task List : ${value!.code}');
-        log('Task List : ${value.status}');
-      });
+          widget.argsSubmitDataModel.taskList.code,
+          'WAITING',
+          _notesCtrl.text,
+          _sesuaiCtrl.text,
+          _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
+      for (int i = 0;
+          i < widget.argsSubmitDataModel.answerResults.length;
+          i++) {
+        await questionDao.updateQuestionListById(
+            widget.argsSubmitDataModel.answerResults[i].pCode!,
+            widget.argsSubmitDataModel.answerResults[i].pAnswer!,
+            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId!);
+      }
     } catch (e) {
       log(e.toString());
     }
     database.close();
   }
 
-  Future<void> processDbUpdateQuestion() async {
+  Future<void> processDbUpdateTaskPending() async {
     final database =
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.taskListDao;
     try {
       await taskListDao.updateTaskStatusById(
-          widget.argsSubmitDataModel.taskList.code, 'PENDING');
+          widget.argsSubmitDataModel.taskList.code,
+          'PENDING',
+          _notesCtrl.text,
+          _sesuaiCtrl.text,
+          _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
       await taskListDao
           .findTaskListById(widget.argsSubmitDataModel.taskList.code)
           .then((value) {
@@ -110,6 +218,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
     final database =
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.pendingAnswerDao;
+    final questionDao = database.questionListDao;
     try {
       for (int i = 0;
           i < widget.argsSubmitDataModel.answerResults.length;
@@ -121,6 +230,10 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
             pAnswerChoiceId:
                 widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId);
         await taskListDao.insertPendingAnswer(pendingAnswer);
+        await questionDao.updateQuestionListById(
+            widget.argsSubmitDataModel.answerResults[i].pCode!,
+            widget.argsSubmitDataModel.answerResults[i].pAnswer!,
+            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId!);
         await taskListDao
             .findPendingAnswerById(pendingAnswer.pCode)
             .then((value) {
@@ -203,11 +316,6 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           value:
               _valueCtrl.text.isEmpty ? null : double.parse(_valueCtrl.text));
       await taskListDao.insertPendingSummary(pendingSummary);
-      await taskListDao
-          .findPendingSummaryByCode(pendingSummary.taskCode)
-          .then((value) {
-        log('Summary Pending : ${value.length}');
-      });
     } catch (e) {
       log(e.toString());
     }
@@ -426,6 +534,9 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
             InkWell(
               onTap: () async {
                 await processDbUpdateTaskDone();
+
+                Provider.of<FormSurvey4Provider>(context, listen: false)
+                    .clearHubungan();
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   StringRouterUtil.tabScreenRoute,
@@ -513,7 +624,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                     onTap: () async {
                       Navigator.pop(context);
                       _submitDraft();
-                      await processDbUpdateQuestion();
+                      await processDbUpdateTaskPending();
                       await processDbAnswer();
                       await processDbAttachment();
                       await processDbReference();
@@ -616,6 +727,8 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           actions: [
             InkWell(
               onTap: () {
+                Provider.of<FormSurvey4Provider>(context, listen: false)
+                    .clearHubungan();
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   StringRouterUtil.tabScreenRoute,
@@ -643,6 +756,103 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
     );
   }
 
+  void _sessionExpired() {
+    showDialog(
+      useSafeArea: true,
+      barrierDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20.0))),
+          actionsPadding:
+              const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          title: Container(),
+          titlePadding: const EdgeInsets.only(top: 20, left: 20),
+          contentPadding: const EdgeInsets.only(
+            top: 0,
+            bottom: 24,
+            left: 24,
+            right: 24,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                'Sesi anda telah habis',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF575551)),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Silahkan Login ulang atau simpan data',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF575551)),
+              ),
+            ],
+          ),
+          actions: [
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(
+                    context, StringRouterUtil.reloginScreenRoute);
+              },
+              child: Container(
+                width: double.infinity,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                    child: Text('Login',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600))),
+              ),
+            ),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () async {
+                Navigator.pop(context);
+                _submitDraft();
+                await processDbUpdateTaskPending();
+                await processDbAnswer();
+                await processDbAttachment();
+                await processDbReference();
+                await processDbSummary();
+                _goHomeDraft();
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.35,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: thirdColor,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Center(
+                    child: Text('Simpan',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600))),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -653,17 +863,19 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Form Survey',
-          style: TextStyle(
+        title: Text(
+          'Form Survey ${widget.argsSubmitDataModel.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+          style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16, top: 20),
+            padding: const EdgeInsets.only(right: 16, top: 20),
             child: Text(
-              '5 dari 5',
-              style: TextStyle(
+              widget.argsSubmitDataModel.taskList.type == 'SURVEY'
+                  ? '4 dari 4'
+                  : '5 dari 5',
+              style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF575551),
                   fontWeight: FontWeight.w400),
@@ -696,9 +908,25 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                         updateQuestionBloc.add(UpdateQuestionAttempt(widget
                             .argsSubmitDataModel.answerResults[questionCount]));
                       } else {
-                        uploadAttachmentBloc.add(UploadAttachmentAttempt(widget
-                            .argsSubmitDataModel
-                            .uploadAttachment[attachmentCount]));
+                        if (widget
+                            .argsSubmitDataModel.uploadAttachment.isNotEmpty) {
+                          uploadAttachmentBloc.add(UploadAttachmentAttempt(
+                              widget.argsSubmitDataModel
+                                  .uploadAttachment[attachmentCount]));
+                        } else if (widget
+                            .argsSubmitDataModel.refrence.isNotEmpty) {
+                          referenceBloc.add(InsertReferenceAttempt(
+                              widget.argsSubmitDataModel.refrence[refCount]));
+                        } else {
+                          updateTaskBloc.add(UpdateTaskAttempt(
+                              widget.argsSubmitDataModel.taskList.code,
+                              widget.argsSubmitDataModel.taskList.type,
+                              _notesCtrl.text,
+                              _valueCtrl.text == ""
+                                  ? 0
+                                  : double.parse(_valueCtrl.text),
+                              _sesuaiCtrl.text));
+                        }
                       }
                     }
                     if (state is UpdateQuestionError) {
@@ -708,7 +936,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                       if (state.error == 'expired') {
                         // // ignore: use_build_context_synchronously
                         Navigator.pop(context);
-                        // _sessionExpired();
+                        _sessionExpired();
                       }
                     }
                   },
@@ -726,15 +954,29 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                             .uploadAttachment[attachmentCount]));
                       } else {
                         if (widget.argsSubmitDataModel.taskList.type ==
-                            'APPRAISAL') {
+                            'SURVEY') {
                           updateTaskBloc.add(UpdateTaskAttempt(
                               widget.argsSubmitDataModel.taskList.code,
                               widget.argsSubmitDataModel.taskList.type,
                               _notesCtrl.text,
-                              double.parse(_valueCtrl.text)));
+                              _valueCtrl.text == ""
+                                  ? 0
+                                  : double.parse(_valueCtrl.text),
+                              _sesuaiCtrl.text));
                         } else {
-                          referenceBloc.add(InsertReferenceAttempt(
-                              widget.argsSubmitDataModel.refrence[refCount]));
+                          if (widget.argsSubmitDataModel.refrence.isNotEmpty) {
+                            referenceBloc.add(InsertReferenceAttempt(
+                                widget.argsSubmitDataModel.refrence[refCount]));
+                          } else {
+                            updateTaskBloc.add(UpdateTaskAttempt(
+                                widget.argsSubmitDataModel.taskList.code,
+                                widget.argsSubmitDataModel.taskList.type,
+                                _notesCtrl.text,
+                                _valueCtrl.text == ""
+                                    ? 0
+                                    : double.parse(_valueCtrl.text),
+                                _sesuaiCtrl.text));
+                          }
                         }
                       }
                     }
@@ -742,11 +984,12 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                       Navigator.pop(context);
                     }
                     if (state is UploadAttachmentException) {
-                      if (state.error == 'expired') {
-                        // // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                        // _sessionExpired();
-                      }
+                      // if (state.error == 'expired') {
+                      //   // // ignore: use_build_context_synchronously
+                      //   Navigator.pop(context);
+                      //   // _sessionExpired();
+                      // }
+                      Navigator.pop(context);
                     }
                   },
                 ),
@@ -765,18 +1008,22 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                             widget.argsSubmitDataModel.taskList.code,
                             widget.argsSubmitDataModel.taskList.type,
                             _notesCtrl.text,
-                            double.parse(_valueCtrl.text)));
+                            _valueCtrl.text == ""
+                                ? 0
+                                : double.parse(_valueCtrl.text),
+                            _sesuaiCtrl.text));
                       }
                     }
                     if (state is ReferenceError) {
                       Navigator.pop(context);
                     }
                     if (state is ReferenceException) {
-                      if (state.error == 'expired') {
-                        // // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                        // _sessionExpired();
-                      }
+                      // if (state.error == 'expired') {
+                      //   // // ignore: use_build_context_synchronously
+                      //   Navigator.pop(context);
+                      //   // _sessionExpired();
+                      // }
+                      Navigator.pop(context);
                     }
                   },
                 ),
@@ -791,11 +1038,12 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                       Navigator.pop(context);
                     }
                     if (state is UpdateTaskException) {
-                      if (state.error == 'expired') {
-                        // // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                        // _sessionExpired();
-                      }
+                      // if (state.error == 'expired') {
+                      //   // // ignore: use_build_context_synchronously
+                      //   Navigator.pop(context);
+                      //   // _sessionExpired();
+                      // }
+                      Navigator.pop(context);
                     }
                   },
                 ),
@@ -839,25 +1087,130 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                               )),
                         ),
                         InkWell(
-                          onTap: () async {
-                            NetworkInfo(internetConnectionChecker)
-                                .isConnected
-                                .then((value) {
-                              if (value) {
-                                _submit();
-                                updateQuestionBloc.add(UpdateQuestionAttempt(
-                                    widget.argsSubmitDataModel
-                                        .answerResults[questionCount]));
-                              } else {
-                                _warningOffline();
-                              }
-                            });
-                          },
+                          onTap: widget.argsSubmitDataModel.taskList.status ==
+                                      'WAITING' ||
+                                  widget.argsSubmitDataModel.taskList.status ==
+                                      'DONE'
+                              ? null
+                              : () async {
+                                  if (widget
+                                          .argsSubmitDataModel.taskList.type ==
+                                      'SURVEY') {
+                                    if (_notesCtrl.text.isEmpty ||
+                                        _notesCtrl.text == '' &&
+                                            _sesuaiCtrl.text.isEmpty ||
+                                        _sesuaiCtrl.text == '') {
+                                      _notComplete();
+                                    } else {
+                                      NetworkInfo(internetConnectionChecker)
+                                          .isConnected
+                                          .then((value) {
+                                        if (value) {
+                                          _submit();
+                                          if (widget.argsSubmitDataModel
+                                              .answerResults.isNotEmpty) {
+                                            updateQuestionBloc.add(
+                                                UpdateQuestionAttempt(widget
+                                                        .argsSubmitDataModel
+                                                        .answerResults[
+                                                    questionCount]));
+                                          } else if (widget.argsSubmitDataModel
+                                              .uploadAttachment.isNotEmpty) {
+                                            uploadAttachmentBloc.add(
+                                                UploadAttachmentAttempt(widget
+                                                        .argsSubmitDataModel
+                                                        .uploadAttachment[
+                                                    attachmentCount]));
+                                          } else if (widget.argsSubmitDataModel
+                                              .refrence.isNotEmpty) {
+                                            referenceBloc.add(
+                                                InsertReferenceAttempt(widget
+                                                    .argsSubmitDataModel
+                                                    .refrence[refCount]));
+                                          } else {
+                                            updateTaskBloc.add(
+                                                UpdateTaskAttempt(
+                                                    widget.argsSubmitDataModel
+                                                        .taskList.code,
+                                                    widget.argsSubmitDataModel
+                                                        .taskList.type,
+                                                    _notesCtrl.text,
+                                                    _valueCtrl.text == ""
+                                                        ? 0
+                                                        : double.parse(
+                                                            _valueCtrl.text),
+                                                    _sesuaiCtrl.text));
+                                          }
+                                        } else {
+                                          _warningOffline();
+                                        }
+                                      });
+                                    }
+                                  } else {
+                                    if (_notesCtrl.text.isEmpty ||
+                                        _notesCtrl.text == '' &&
+                                            _valueCtrl.text.isEmpty ||
+                                        _valueCtrl.text == '') {
+                                      _notComplete();
+                                    } else {
+                                      NetworkInfo(internetConnectionChecker)
+                                          .isConnected
+                                          .then((value) {
+                                        if (value) {
+                                          _submit();
+                                          if (widget.argsSubmitDataModel
+                                              .answerResults.isNotEmpty) {
+                                            updateQuestionBloc.add(
+                                                UpdateQuestionAttempt(widget
+                                                        .argsSubmitDataModel
+                                                        .answerResults[
+                                                    questionCount]));
+                                          } else if (widget.argsSubmitDataModel
+                                              .uploadAttachment.isNotEmpty) {
+                                            uploadAttachmentBloc.add(
+                                                UploadAttachmentAttempt(widget
+                                                        .argsSubmitDataModel
+                                                        .uploadAttachment[
+                                                    attachmentCount]));
+                                          } else if (widget.argsSubmitDataModel
+                                              .refrence.isNotEmpty) {
+                                            referenceBloc.add(
+                                                InsertReferenceAttempt(widget
+                                                    .argsSubmitDataModel
+                                                    .refrence[refCount]));
+                                          } else {
+                                            updateTaskBloc.add(
+                                                UpdateTaskAttempt(
+                                                    widget.argsSubmitDataModel
+                                                        .taskList.code,
+                                                    widget.argsSubmitDataModel
+                                                        .taskList.type,
+                                                    _notesCtrl.text,
+                                                    _valueCtrl.text == ""
+                                                        ? 0
+                                                        : double.parse(
+                                                            _valueCtrl.text),
+                                                    _sesuaiCtrl.text));
+                                          }
+                                        } else {
+                                          _warningOffline();
+                                        }
+                                      });
+                                    }
+                                  }
+                                },
                           child: Container(
                             width: MediaQuery.of(context).size.width * 0.45,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: primaryColor,
+                              color:
+                                  widget.argsSubmitDataModel.taskList.status ==
+                                              'WAITING' ||
+                                          widget.argsSubmitDataModel.taskList
+                                                  .status ==
+                                              'DONE'
+                                      ? Colors.grey
+                                      : primaryColor,
                               borderRadius: BorderRadius.circular(22),
                             ),
                             child: const Center(
@@ -879,8 +1232,11 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
   Widget mainContent() {
     return SingleChildScrollView(
       child: Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          margin:
+              EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.2),
           padding:
-              const EdgeInsets.only(bottom: 80, top: 16, left: 16, right: 16),
+              const EdgeInsets.only(bottom: 50, top: 16, left: 16, right: 16),
           child: Column(
             children: [
               txtArea(),
@@ -939,17 +1295,35 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
               child: TextFormField(
                 controller: _valueCtrl,
                 autofocus: false,
-                enabled: true,
-                readOnly: false,
+                enabled:
+                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? false
+                        : true,
+                readOnly:
+                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? true
+                        : false,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
-                style: const TextStyle(fontSize: 15.0, color: Colors.black),
+                style: TextStyle(
+                    fontSize: 15.0,
+                    color: widget.argsSubmitDataModel.taskList.status ==
+                                'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? Colors.grey
+                        : Colors.black),
                 onEditingComplete: () {},
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: widget.argsSubmitDataModel.taskList.status ==
+                              'WAITING' ||
+                          widget.argsSubmitDataModel.taskList.status == 'DONE'
+                      ? Colors.grey.withOpacity(0.05)
+                      : Colors.white,
                   contentPadding:
                       const EdgeInsets.only(left: 14.0, bottom: 6.0, top: 8.0),
                   focusedBorder: OutlineInputBorder(
@@ -1022,16 +1396,34 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
               child: TextFormField(
                 controller: _sesuaiCtrl,
                 autofocus: false,
-                enabled: true,
-                readOnly: false,
+                enabled:
+                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? false
+                        : true,
+                readOnly:
+                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? true
+                        : false,
                 textInputAction: TextInputAction.done,
-                style: const TextStyle(fontSize: 15.0, color: Colors.black),
+                style: TextStyle(
+                    fontSize: 15.0,
+                    color: widget.argsSubmitDataModel.taskList.status ==
+                                'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? Colors.grey
+                        : Colors.black),
                 onEditingComplete: () {},
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: widget.argsSubmitDataModel.taskList.status ==
+                              'WAITING' ||
+                          widget.argsSubmitDataModel.taskList.status == 'DONE'
+                      ? Colors.grey.withOpacity(0.05)
+                      : Colors.white,
                   contentPadding:
                       const EdgeInsets.only(left: 14.0, bottom: 6.0, top: 8.0),
                   focusedBorder: OutlineInputBorder(
@@ -1101,19 +1493,38 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
             child: Center(
               child: TextFormField(
                 controller: _notesCtrl,
-                enabled: true,
-                readOnly: false,
+                enabled:
+                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? false
+                        : true,
+                readOnly:
+                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? true
+                        : false,
                 autofocus: false,
                 minLines: 8,
-                maxLines: 10,
+                maxLines: 20,
+                maxLength: 4000,
                 keyboardType: TextInputType.multiline,
                 onChanged: (value) {},
-                style: const TextStyle(fontSize: 15.0, color: Colors.black),
+                style: TextStyle(
+                    fontSize: 15.0,
+                    color: widget.argsSubmitDataModel.taskList.status ==
+                                'WAITING' ||
+                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                        ? Colors.grey
+                        : Colors.black),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: widget.argsSubmitDataModel.taskList.status ==
+                              'WAITING' ||
+                          widget.argsSubmitDataModel.taskList.status == 'DONE'
+                      ? Colors.grey.withOpacity(0.05)
+                      : Colors.white,
                   contentPadding: const EdgeInsets.all(14),
                   focusedBorder: OutlineInputBorder(
                     borderSide:

@@ -470,8 +470,8 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
         } else {
           GeneralUtil.getDeviceId().then((value) {
             loginBloc.add(LoginAttempt(
-                loginRequestModel: LoginRequestModel(
-                    loginProdiver.username, loginProdiver.password, value)));
+                loginRequestModel: LoginRequestModel(loginProdiver.username,
+                    loginProdiver.password, 'TP1A.220624.014')));
           });
         }
       },

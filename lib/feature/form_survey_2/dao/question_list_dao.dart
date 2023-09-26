@@ -15,6 +15,11 @@ abstract class QuestionListDao {
   @Query('DELETE FROM QuestionList WHERE code = :code')
   Future<void> deleteQuestionListById(String code);
 
+  @Query(
+      'UPDATE QuestionList SET answer = :answer AND answerChoiceId = :answerChoiceId WHERE code = :code')
+  Future<void> updateQuestionListById(
+      String code, String answer, int answerChoiceId);
+
   @insert
   Future<void> insertQuestionList(QuestionList questionList);
 

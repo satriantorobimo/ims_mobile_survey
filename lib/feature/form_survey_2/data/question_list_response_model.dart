@@ -96,21 +96,21 @@ class Data {
 
 class AnswerChoice {
   int? id;
-  String? taskQuestionCode;
+  String? questionCode;
   String? questionOptionDesc;
 
-  AnswerChoice({this.id, this.taskQuestionCode, this.questionOptionDesc});
+  AnswerChoice({this.id, this.questionCode, this.questionOptionDesc});
 
   AnswerChoice.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    taskQuestionCode = json['task_question_code'];
+    questionCode = json['question_code'];
     questionOptionDesc = json['question_option_desc'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
-    data['task_question_code'] = taskQuestionCode;
+    data['question_code'] = questionCode;
     data['question_option_desc'] = questionOptionDesc;
     return data;
   }

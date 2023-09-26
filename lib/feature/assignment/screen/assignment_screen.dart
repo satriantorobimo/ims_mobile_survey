@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:group_radio_button/group_radio_button.dart';
 import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/provider/assignment_provider.dart';
@@ -30,6 +33,10 @@ class _AssignmentScreenState extends State<AssignmentScreen>
 
   bool isLoading = true;
 
+  String filter = '';
+
+  final _filter = const ['Survey', 'Appraisal'];
+
   @override
   void initState() {
     _tabController = TabController(length: 4, vsync: this);
@@ -48,23 +55,39 @@ class _AssignmentScreenState extends State<AssignmentScreen>
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.taskListDao;
 
+    List<TaskList> ongoingTemp = [];
+    List<TaskList> waitingTemp = [];
+    List<TaskList> returnedTemp = [];
+    List<TaskList> doneTemp = [];
+
     await taskListDao.findAllTaskList().then((value) async {
       for (int i = 0; i < value.length; i++) {
         if (value[i]!.status == 'ASSIGN') {
-          setState(() {
-            ongoing.add(value[i]!);
-          });
+          ongoingTemp.add(value[i]!);
         } else if (value[i]!.status == 'DONE') {
-          setState(() {
-            done.add(value[i]!);
-          });
+          doneTemp.add(value[i]!);
         } else if (value[i]!.status == 'RETURN') {
-          setState(() {
-            returned.add(value[i]!);
-          });
+          returnedTemp.add(value[i]!);
         } else if (value[i]!.status == 'WAITING') {
+          waitingTemp.add(value[i]!);
+        }
+
+        if (i == value.length - 1) {
           setState(() {
-            waiting.add(value[i]!);
+            ongoing = ongoingTemp.map((ongoing) => ongoing).toList()
+              ..sort((a, b) =>
+                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+
+            done = doneTemp.map((done) => done).toList()
+              ..sort((a, b) =>
+                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+
+            returned = returnedTemp.map((returned) => returned).toList()
+              ..sort((a, b) =>
+                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+            waiting = waitingTemp.map((waiting) => waiting).toList()
+              ..sort((a, b) =>
+                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
           });
         }
       }
@@ -74,6 +97,119 @@ class _AssignmentScreenState extends State<AssignmentScreen>
       isLoading = false;
       database.close();
     });
+  }
+
+  void _filterAction(int index) {
+    var assignmentProvider =
+        Provider.of<AssignmentProvider>(context, listen: false);
+    showDialog(
+      useSafeArea: true,
+      barrierDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, stfSetState) {
+          return AlertDialog(
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            actionsPadding:
+                const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+            title: Container(),
+            titlePadding: const EdgeInsets.only(top: 20, left: 20),
+            contentPadding: const EdgeInsets.only(
+              top: 0,
+              bottom: 24,
+              left: 24,
+              right: 24,
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Assignment Filter',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF575551)),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 50.0,
+                  child: RadioGroup<String>.builder(
+                    direction: Axis.horizontal,
+                    groupValue: assignmentProvider.filter,
+                    horizontalAlignment: MainAxisAlignment.spaceAround,
+                    onChanged: (values) {
+                      stfSetState(() {
+                        assignmentProvider.setFilter(values!);
+                      });
+                    },
+                    activeColor: primaryColor,
+                    items: _filter,
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF2D2A26),
+                    ),
+                    itemBuilder: (item) => RadioButtonBuilder(
+                      item,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                      child: Text('Ok',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600))),
+                ),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: () {
+                  assignmentProvider.setFilter('');
+                  isLoading = true;
+                  ongoing = [];
+                  waiting = [];
+                  returned = [];
+                  done = [];
+                  _sortingData();
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: fifthColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                      child: Text('Clear Filter',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600))),
+                ),
+              ),
+            ],
+          );
+        });
+      },
+    );
   }
 
   @override
@@ -87,6 +223,23 @@ class _AssignmentScreenState extends State<AssignmentScreen>
             style: TextStyle(
                 fontSize: 24, color: Colors.black, fontWeight: FontWeight.w700),
           ),
+          actions: [
+            InkWell(
+              onTap: () {
+                _filterAction(_tabController.index);
+              },
+              child: const Padding(
+                padding: EdgeInsets.only(right: 16.0, top: 16.0),
+                child: Text(
+                  'Filter',
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: primaryColor,
+                      fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
         ),
         body: Container(
           height: MediaQuery.of(context).size.height,
@@ -139,7 +292,6 @@ class _AssignmentScreenState extends State<AssignmentScreen>
                 ),
                 Expanded(
                   child: TabBarView(
-                    physics: const NeverScrollableScrollPhysics(),
                     controller: _tabController,
                     children: <Widget>[
                       isLoading

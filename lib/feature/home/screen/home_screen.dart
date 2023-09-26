@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     NetworkInfo(internetConnectionChecker).isConnected.then((value) async {
       if (value) {
-        taskListBloc.add(const TaskListAttempt());
+        getData();
       } else {
         log('No Connection');
 
@@ -82,6 +82,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     animationController!.dispose();
     super.dispose();
+  }
+
+  Future<void> getData() async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final taskListDao = database.taskListDao;
+    await taskListDao.findAllTaskList().then((value) async {
+      if (value.isEmpty) {
+        taskListBloc.add(const TaskListAttempt());
+      } else {
+        _loadingData(context);
+        await _sortingData();
+
+        setState(() {
+          isLoadingListData = false;
+        });
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
+      }
+    });
+    database.close();
   }
 
   Future<void> _pullRefresh() async {
@@ -162,15 +183,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               await taskListDao.insertTaskList(taskList);
               // log('Task List di db Isi : data ke $i tidak ada dan berhasil isi');
             } else {
-              // if (value.status != 'PENDING') {
-              //   if (value.toJson().toString() != taskList.toJson().toString()) {
-              //     await taskListDao.deleteTaskListById(taskList.code);
-              //     await taskListDao.insertTaskList(taskList);
-              //     // log('Task List di db Isi : data ke $i ada namun ada data ke update dan berhasil isi');
-              //   } else {
-              //     // log('Task List di db Isi : data ke $i ada dan isi sama');
-              //   }
-              // }
+              if (value.status == 'WAITING' && data[i].status == 'RETURN') {
+                await taskListDao.deleteTaskListById(taskList.code);
+                await taskListDao.insertTaskList(taskList);
+                // if (value.toJson().toString() != taskList.toJson().toString()) {
+                //   await taskListDao.deleteTaskListById(taskList.code);
+                //   await taskListDao.insertTaskList(taskList);
+                //   // log('Task List di db Isi : data ke $i ada namun ada data ke update dan berhasil isi');
+                // } else {
+                //   // log('Task List di db Isi : data ke $i ada dan isi sama');
+                // }
+              }
             }
           });
         }
@@ -188,100 +211,72 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final questionListDao = database.questionListDao;
     final answerListDao = database.answerListDao;
+    log('question length : ${data.length}');
+    log('code ${taskListData[countQuestion - 1].code!}');
+    if (data.isNotEmpty) {
+      await questionListDao
+          .findQuestionListByTaskCode(taskListData[countQuestion - 1].code!)
+          .then((value) async {
+        if (value.isEmpty) {
+          log('Question di db Kosong');
+          for (int i = 0; i < data.length; i++) {
+            final question = QuestionList(
+                code: data[i].code!,
+                taskCode: data[i].taskCode!,
+                questionCode: data[i].questionCode!,
+                questionDesc: data[i].questionDesc!,
+                type: data[i].type!,
+                answer: data[i].answer,
+                answerChoiceId: data[i].answerChoiceId);
+            await questionListDao.insertQuestionList(question);
+            // log('Question List di db Kosong : berhasil tambah');
+            if (data[i].answerChoice!.isNotEmpty) {
+              for (int x = 0; x < data[i].answerChoice!.length; x++) {
+                // log('Answer List length ${data[i].answerChoice!.length}');
+                final answer = AnswerList(
+                    id: data[i].answerChoice![x].id!,
+                    questionOptionDesc:
+                        data[i].answerChoice![x].questionOptionDesc!,
+                    taskQuestionCode: question.code);
+                // log('Answer Code ${answer.taskQuestionCode}');
+                await answerListDao.insertAnswerList(answer);
+                log('Answer List di db Kosong : berhasil tambah ${answer.taskQuestionCode}');
+              }
+            }
+          }
+        } else {
+          log('Question di db Isi');
+          for (int i = 0; i < data.length; i++) {
+            final question = QuestionList(
+                code: data[i].code!,
+                taskCode: data[i].taskCode!,
+                questionCode: data[i].questionCode!,
+                questionDesc: data[i].questionDesc!,
+                type: data[i].type!,
+                answer: data[i].answer,
+                answerChoiceId: data[i].answerChoiceId);
+            await questionListDao.deleteQuestionListById(data[i].code!);
+            await questionListDao.insertQuestionList(question);
+            if (data[i].answerChoice!.isNotEmpty) {
+              await answerListDao.deleteAnswerListById(question.code);
+              for (int x = 0; x < data[i].answerChoice!.length; x++) {
+                final answer = AnswerList(
+                    id: data[i].answerChoice![x].id!,
+                    questionOptionDesc:
+                        data[i].answerChoice![x].questionOptionDesc!,
+                    taskQuestionCode: question.code);
 
-    await questionListDao.findAllQuestionList().then((value) async {
-      if (value.isEmpty) {
-        // log('Question di db Kosong');
-        for (int i = 0; i < data.length; i++) {
-          final question = QuestionList(
-              code: data[i].code!,
-              taskCode: data[i].taskCode!,
-              questionCode: data[i].questionCode!,
-              questionDesc: data[i].questionDesc!,
-              type: data[i].type!,
-              answer: data[i].answer,
-              answerChoiceId: data[i].answerChoiceId);
-          await questionListDao.insertQuestionList(question);
-          // log('Question List di db Kosong : berhasil tambah');
-          if (data[i].answerChoice!.isNotEmpty) {
-            for (int x = 0; x < data[i].answerChoice!.length; x++) {
-              // log('Answer List length ${data[i].answerChoice!.length}');
-              final answer = AnswerList(
-                  id: data[i].answerChoice![x].id!,
-                  questionOptionDesc:
-                      data[i].answerChoice![x].questionOptionDesc!,
-                  taskQuestionCode: data[i].answerChoice![x].taskQuestionCode!);
-              // log('Answer Code ${answer.taskQuestionCode}');
-              await answerListDao.insertAnswerList(answer);
-              // log('Answer List di db Kosong : berhasil tambah $i');
+                await answerListDao.insertAnswerList(answer);
+
+                // log('Answer Null Delete Tambah');
+              }
             }
           }
         }
-      } else {
-        for (int i = 0; i < data.length; i++) {
-          await questionListDao
-              .findQuestionListById(data[i].code!)
-              .then((value) async {
-            if (value == null) {
-              final question = QuestionList(
-                  code: data[i].code!,
-                  taskCode: data[i].taskCode!,
-                  questionCode: data[i].questionCode!,
-                  questionDesc: data[i].questionDesc!,
-                  type: data[i].type!,
-                  answer: data[i].answer,
-                  answerChoiceId: data[i].answerChoiceId);
-              await questionListDao.insertQuestionList(question);
-              // log('Question List di db Kosong : berhasil tambah');
-              if (data[i].answerChoice!.isNotEmpty) {
-                for (int x = 0; x < data[i].answerChoice!.length; x++) {
-                  final answer = AnswerList(
-                      id: data[i].answerChoice![x].id!,
-                      questionOptionDesc:
-                          data[i].answerChoice![x].questionOptionDesc!,
-                      taskQuestionCode:
-                          data[i].answerChoice![x].taskQuestionCode!);
-                  await answerListDao.insertAnswerList(answer);
-                  // log('Answer List di db Kosong : berhasil tambah $i');
-                }
-              }
-            } else {
-              // log('Question List di db Isi');
-              final question = QuestionList(
-                  code: data[i].code!,
-                  taskCode: data[i].taskCode!,
-                  questionCode: data[i].questionCode!,
-                  questionDesc: data[i].questionDesc!,
-                  type: data[i].type!,
-                  answer: data[i].answer,
-                  answerChoiceId: data[i].answerChoiceId);
-              await questionListDao.deleteQuestionListById(data[i].code!);
-              await questionListDao.insertQuestionList(question);
-              if (data[i].answerChoice!.isNotEmpty) {
-                await answerListDao.deleteAnswerListById(data[i].code!);
-                for (int x = 0; x < data[i].answerChoice!.length; x++) {
-                  final answer = AnswerList(
-                      id: data[i].answerChoice![x].id!,
-                      questionOptionDesc:
-                          data[i].answerChoice![x].questionOptionDesc!,
-                      taskQuestionCode:
-                          data[i].answerChoice![x].taskQuestionCode!);
+      });
 
-                  await answerListDao.insertAnswerList(answer);
-                  await answerListDao
-                      .findAnswerListByCode('TQS.2307.000001')
-                      .then((value) {
-                    log(value.length.toString());
-                  });
-                  // log('Answer Null Delete Tambah');
-                }
-              }
-            }
-          });
-        }
-      }
-    });
-    database.close();
+      database.close();
+    }
   }
 
   Future<void> _sortingData() async {
