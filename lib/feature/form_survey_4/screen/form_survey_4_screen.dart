@@ -4,6 +4,7 @@ import 'package:dropdown_button2/custom_dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:group_radio_button/group_radio_button.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
+import 'package:mobile_survey/utility/database_util.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import 'package:provider/provider.dart';
 
@@ -29,6 +30,8 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
   final TextEditingController _remarkCtrl = TextEditingController();
   final TextEditingController _nilaiCtrl = TextEditingController();
 
+  bool isLoading = true;
+
   @override
   void dispose() {
     animationController!.dispose();
@@ -40,6 +43,11 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
     animationController =
         AnimationController(duration: const Duration(seconds: 2), vsync: this);
     animationController!.repeat();
+    if (widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+        widget.argsSubmitDataModel.taskList.status == 'RETURN' ||
+        widget.argsSubmitDataModel.taskList.status == 'DONE') {
+      _getData();
+    }
 
     super.initState();
   }
@@ -568,7 +576,7 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
   }
 
   void _sumberInformasiDetailView(String name, String phone, String phoneArea,
-      String remark, String nilai, int index) {
+      String remark, String nilai, int index, bool isEdit) {
     var providers = Provider.of<FormSurvey4Provider>(context, listen: false);
     _nameCtrl.text = name;
     _phoneCtrl.text = phone;
@@ -642,16 +650,21 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
+                            enabled: isEdit ? false : true,
+                            readOnly: isEdit ? false : true,
                             controller: _nameCtrl,
                             autofocus: false,
-                            style: const TextStyle(
-                                fontSize: 15.0, color: Colors.black),
+                            style: TextStyle(
+                                fontSize: 15.0,
+                                color: isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
+                              fillColor: isEdit
+                                  ? Colors.grey.withOpacity(0.05)
+                                  : Colors.white,
                               border: InputBorder.none,
                               hintStyle: TextStyle(
                                   color: Colors.grey.withOpacity(0.5)),
                               filled: true,
-                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.only(
                                   left: 14.0, bottom: 6.0, top: 8.0),
                               focusedBorder: OutlineInputBorder(
@@ -705,19 +718,24 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
+                            enabled: isEdit ? false : true,
+                            readOnly: isEdit ? false : true,
                             controller: _phoneAreaCtrl,
                             keyboardType: TextInputType.phone,
                             autofocus: false,
                             maxLength: 6,
-                            style: const TextStyle(
-                                fontSize: 15.0, color: Colors.black),
+                            style: TextStyle(
+                                fontSize: 15.0,
+                                color: isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
+                              fillColor: isEdit
+                                  ? Colors.grey.withOpacity(0.05)
+                                  : Colors.white,
                               counterText: '',
                               border: InputBorder.none,
                               hintStyle: TextStyle(
                                   color: Colors.grey.withOpacity(0.5)),
                               filled: true,
-                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.only(
                                   left: 14.0, bottom: 6.0, top: 8.0),
                               focusedBorder: OutlineInputBorder(
@@ -775,15 +793,20 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                             keyboardType: TextInputType.phone,
                             autofocus: false,
                             maxLength: 15,
-                            style: const TextStyle(
-                                fontSize: 15.0, color: Colors.black),
+                            enabled: isEdit ? false : true,
+                            readOnly: isEdit ? false : true,
+                            style: TextStyle(
+                                fontSize: 15.0,
+                                color: isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
+                              fillColor: isEdit
+                                  ? Colors.grey.withOpacity(0.05)
+                                  : Colors.white,
                               counterText: '',
                               border: InputBorder.none,
                               hintStyle: TextStyle(
                                   color: Colors.grey.withOpacity(0.5)),
                               filled: true,
-                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.only(
                                   left: 14.0, bottom: 6.0, top: 8.0),
                               focusedBorder: OutlineInputBorder(
@@ -836,18 +859,23 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
+                            enabled: isEdit ? false : true,
+                            readOnly: isEdit ? false : true,
                             controller: _remarkCtrl,
                             autofocus: false,
                             maxLines: 4,
                             maxLength: 4000,
-                            style: const TextStyle(
-                                fontSize: 15.0, color: Colors.black),
+                            style: TextStyle(
+                                fontSize: 15.0,
+                                color: isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
+                              fillColor: isEdit
+                                  ? Colors.grey.withOpacity(0.05)
+                                  : Colors.white,
                               border: InputBorder.none,
                               hintStyle: TextStyle(
                                   color: Colors.grey.withOpacity(0.5)),
                               filled: true,
-                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.only(
                                   left: 14.0, bottom: 6.0, top: 8.0),
                               focusedBorder: OutlineInputBorder(
@@ -901,17 +929,22 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
+                            enabled: isEdit ? false : true,
+                            readOnly: isEdit ? false : true,
                             controller: _nilaiCtrl,
                             keyboardType: TextInputType.number,
                             autofocus: false,
-                            style: const TextStyle(
-                                fontSize: 15.0, color: Colors.black),
+                            style: TextStyle(
+                                fontSize: 15.0,
+                                color: isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
+                              fillColor: isEdit
+                                  ? Colors.grey.withOpacity(0.05)
+                                  : Colors.white,
                               border: InputBorder.none,
                               hintStyle: TextStyle(
                                   color: Colors.grey.withOpacity(0.5)),
                               filled: true,
-                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.only(
                                   left: 14.0, bottom: 6.0, top: 8.0),
                               focusedBorder: OutlineInputBorder(
@@ -993,6 +1026,36 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
     );
   }
 
+  void _getData() async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final referenceListDao = database.referenceListDao;
+
+    await referenceListDao
+        .findRefrenceByCode(widget.argsSubmitDataModel.taskList.code)
+        .then((value) {
+      if (value.isNotEmpty) {
+        var formSurvey4Provider =
+            Provider.of<FormSurvey4Provider>(context, listen: false);
+        formSurvey4Provider.clearHubungan();
+        for (int i = 0; i < value.length; i++) {
+          formSurvey4Provider.setHubunganModel(HubunganModel(
+              taskCode: value[i].taskCode,
+              name: value[i].name,
+              phoneArea: value[i].phoneArea,
+              phoneNumber: value[i].phoneNumber,
+              remark: value[i].remark,
+              value: value[i].value));
+        }
+      }
+    });
+
+    setState(() {
+      isLoading = false;
+      database.close();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var formSurvey4Provider = Provider.of<FormSurvey4Provider>(context);
@@ -1034,199 +1097,238 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
         ),
         child: Stack(
           children: [
-            SingleChildScrollView(
-              child: Container(
-                padding: const EdgeInsets.only(
-                    bottom: 80, top: 16, left: 16, right: 16),
-                child: Column(
-                  children: [
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Hubungan dengan Debitur',
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF2D2A26),
-                            fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    formSurvey4Provider.listHubunganModel.isEmpty
-                        ? Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: const Color(0xFFF9F9F9),
-                                width: 1.0,
-                              ),
-                              color: const Color(0xFFF9F9F9),
+            isLoading
+                ? Container()
+                : SingleChildScrollView(
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                          bottom: 80, top: 16, left: 16, right: 16),
+                      child: Column(
+                        children: [
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Hubungan dengan Debitur',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Color(0xFF2D2A26),
+                                  fontWeight: FontWeight.w700),
                             ),
-                            width: double.infinity,
-                            height: 100,
-                            child: const Center(
-                              child: Text(
-                                'Belum ada sumber informasi',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF575551),
-                                    fontWeight: FontWeight.w700),
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            scrollDirection: Axis.vertical,
-                            itemCount:
-                                formSurvey4Provider.listHubunganModel.length,
-                            separatorBuilder: (context, index) {
-                              return const Padding(
-                                padding: EdgeInsets.only(top: 8, bottom: 8),
-                              );
-                            },
-                            itemBuilder: (context, index) {
-                              return InkWell(
-                                onTap: () {
-                                  _sumberInformasiDetailView(
-                                      formSurvey4Provider
-                                          .listHubunganModel[index].name!,
-                                      formSurvey4Provider
-                                          .listHubunganModel[index]
-                                          .phoneNumber!,
-                                      formSurvey4Provider
-                                          .listHubunganModel[index].phoneArea!,
-                                      formSurvey4Provider
-                                          .listHubunganModel[index].remark!,
-                                      formSurvey4Provider
-                                          .listHubunganModel[index].value
-                                          .toString(),
-                                      index);
-                                },
-                                child: Container(
+                          ),
+                          const SizedBox(height: 24),
+                          formSurvey4Provider.listHubunganModel.isEmpty
+                              ? Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Colors.grey.withOpacity(0.5),
+                                      color: const Color(0xFFF9F9F9),
                                       width: 1.0,
                                     ),
-                                    color: Colors.transparent,
+                                    color: const Color(0xFFF9F9F9),
                                   ),
                                   width: double.infinity,
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            '${formSurvey4Provider.listHubunganModel[index].name}',
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF2D2A26),
-                                                fontWeight: FontWeight.w600),
+                                  height: 100,
+                                  child: const Center(
+                                    child: Text(
+                                      'Belum ada sumber informasi',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF575551),
+                                          fontWeight: FontWeight.w700),
+                                    ),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  scrollDirection: Axis.vertical,
+                                  itemCount: formSurvey4Provider
+                                      .listHubunganModel.length,
+                                  separatorBuilder: (context, index) {
+                                    return const Padding(
+                                      padding:
+                                          EdgeInsets.only(top: 8, bottom: 8),
+                                    );
+                                  },
+                                  itemBuilder: (context, index) {
+                                    return InkWell(
+                                      onTap: () {
+                                        _sumberInformasiDetailView(
+                                            formSurvey4Provider
+                                                .listHubunganModel[index].name!,
+                                            formSurvey4Provider
+                                                .listHubunganModel[index]
+                                                .phoneNumber!,
+                                            formSurvey4Provider
+                                                .listHubunganModel[index]
+                                                .phoneArea!,
+                                            formSurvey4Provider
+                                                .listHubunganModel[index]
+                                                .remark!,
+                                            formSurvey4Provider
+                                                .listHubunganModel[index].value
+                                                .toString(),
+                                            index,
+                                            widget.argsSubmitDataModel.taskList
+                                                        .status ==
+                                                    'WAITING' ||
+                                                widget.argsSubmitDataModel
+                                                        .taskList.status ==
+                                                    'DONE');
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            width: 1.0,
                                           ),
-                                          Text(
-                                            '${formSurvey4Provider.listHubunganModel[index].value}',
-                                            style: const TextStyle(
-                                                fontSize: 10,
-                                                color: primaryColor,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '(${formSurvey4Provider.listHubunganModel[index].phoneArea}) ${formSurvey4Provider.listHubunganModel[index].phoneNumber}',
-                                        style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Color(0xFF2D2A26),
-                                            fontWeight: FontWeight.w400),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          SizedBox(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.7,
-                                            child: Text(
-                                              '${formSurvey4Provider.listHubunganModel[index].remark}',
+                                          color: Colors.transparent,
+                                        ),
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  '${formSurvey4Provider.listHubunganModel[index].name}',
+                                                  style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Color(0xFF2D2A26),
+                                                      fontWeight:
+                                                          FontWeight.w600),
+                                                ),
+                                                Text(
+                                                  '${formSurvey4Provider.listHubunganModel[index].value}',
+                                                  style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: primaryColor,
+                                                      fontWeight:
+                                                          FontWeight.w700),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              '(${formSurvey4Provider.listHubunganModel[index].phoneArea}) ${formSurvey4Provider.listHubunganModel[index].phoneNumber}',
                                               style: const TextStyle(
                                                   fontSize: 12,
                                                   color: Color(0xFF2D2A26),
                                                   fontWeight: FontWeight.w400),
                                             ),
-                                          ),
-                                          InkWell(
-                                            onTap: () {
-                                              _warningDelete(
-                                                  index,
-                                                  formSurvey4Provider
-                                                      .listHubunganModel[index]
-                                                      .name!);
-                                            },
-                                            child: const Icon(
-                                              Icons.delete,
-                                              color: Colors.red,
-                                              size: 22,
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                SizedBox(
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      0.7,
+                                                  child: Text(
+                                                    '${formSurvey4Provider.listHubunganModel[index].remark}',
+                                                    style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            Color(0xFF2D2A26),
+                                                        fontWeight:
+                                                            FontWeight.w400),
+                                                  ),
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    _warningDelete(
+                                                        index,
+                                                        formSurvey4Provider
+                                                            .listHubunganModel[
+                                                                index]
+                                                            .name!);
+                                                  },
+                                                  child: const Icon(
+                                                    Icons.delete,
+                                                    color: Colors.red,
+                                                    size: 22,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton(
-                          onPressed: widget.argsSubmitDataModel.taskList
-                                          .status ==
-                                      'WAITING' ||
-                                  widget.argsSubmitDataModel.taskList.status ==
-                                      'DONE'
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _nameCtrl.clear();
-                                    _phoneAreaCtrl.clear();
-                                    _phoneCtrl.clear();
-                                    _remarkCtrl.clear();
-                                    _nilaiCtrl.clear();
-                                  });
-                                  _sumberInformasiDetail(context);
-                                },
-                          // ignore: sort_child_properties_last
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.person_add,
-                                color: widget.argsSubmitDataModel.taskList
+                                    );
+                                  }),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton(
+                                onPressed: widget.argsSubmitDataModel.taskList
                                                 .status ==
                                             'WAITING' ||
                                         widget.argsSubmitDataModel.taskList
                                                 .status ==
                                             'DONE'
-                                    ? Colors.grey
-                                    : primaryColor,
-                                size: 22,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Tambah Sumber Informasi',
-                                style: TextStyle(
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          _nameCtrl.clear();
+                                          _phoneAreaCtrl.clear();
+                                          _phoneCtrl.clear();
+                                          _remarkCtrl.clear();
+                                          _nilaiCtrl.clear();
+                                        });
+                                        _sumberInformasiDetail(context);
+                                      },
+                                // ignore: sort_child_properties_last
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.person_add,
+                                      color: widget.argsSubmitDataModel.taskList
+                                                      .status ==
+                                                  'WAITING' ||
+                                              widget.argsSubmitDataModel
+                                                      .taskList.status ==
+                                                  'DONE'
+                                          ? Colors.grey
+                                          : primaryColor,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Tambah Sumber Informasi',
+                                      style: TextStyle(
+                                          color: widget.argsSubmitDataModel
+                                                          .taskList.status ==
+                                                      'WAITING' ||
+                                                  widget.argsSubmitDataModel
+                                                          .taskList.status ==
+                                                      'DONE'
+                                              ? Colors.grey
+                                              : primaryColor,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all(
+                                      RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(24.0))),
+                                  side: MaterialStateProperty.all(BorderSide(
                                     color: widget.argsSubmitDataModel.taskList
                                                     .status ==
                                                 'WAITING' ||
@@ -1235,31 +1337,13 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                                 'DONE'
                                         ? Colors.grey
                                         : primaryColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ],
+                                  )),
+                                )),
                           ),
-                          style: ButtonStyle(
-                            shape: MaterialStateProperty.all(
-                                RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24.0))),
-                            side: MaterialStateProperty.all(BorderSide(
-                              color:
-                                  widget.argsSubmitDataModel.taskList.status ==
-                                              'WAITING' ||
-                                          widget.argsSubmitDataModel.taskList
-                                                  .status ==
-                                              'DONE'
-                                      ? Colors.grey
-                                      : primaryColor,
-                            )),
-                          )),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
             Positioned(
                 bottom: 0,
                 left: 0,

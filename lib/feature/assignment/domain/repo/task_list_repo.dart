@@ -8,7 +8,13 @@ class TaskListRepo {
   Future<TaskListResponseModel?> attemptGetTaskList() =>
       taskListApi.attemptGetTaskList();
 
-  Future<SuccessUpdateResponseModel?> attemptUpdateTask(String code,
-          String type, String remark, double appraisal, String result) =>
-      taskListApi.attemptUpdateTask(code, type, remark, appraisal, result);
+  Future<SuccessUpdateResponseModel?> attemptUpdateTask(
+          String code,
+          String type,
+          String remark,
+          double appraisal,
+          String result,
+          String date) =>
+      taskListApi.attemptUpdateTask(
+          code, type, remark, appraisal, result, date);
 }

@@ -19,14 +19,21 @@ import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_
 import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_response_model.dart'
     as atc;
+import 'package:mobile_survey/feature/form_survey_4/data/reference_list_model.dart';
+
+import 'package:mobile_survey/feature/form_survey_4/data/reference_list_response_model.dart'
+    as rfr;
 import 'package:mobile_survey/feature/form_survey_3/bloc/attachment_list_bloc/bloc.dart';
 import 'package:mobile_survey/feature/form_survey_3/domain/repo/attachment_list_repo.dart';
+import 'package:mobile_survey/feature/form_survey_4/bloc/reference_list_bloc/bloc.dart';
+import 'package:mobile_survey/feature/form_survey_4/domain/repo/reference_repo.dart';
 import 'package:mobile_survey/feature/home/widget/header_home_widget.dart';
 import 'package:mobile_survey/feature/home/widget/main_content_home_widget.dart';
 import 'package:mobile_survey/feature/home/widget/user_info_home_widget.dart';
 import 'package:mobile_survey/feature/login/data/user_data_model.dart';
 import 'package:mobile_survey/utility/database_util.dart';
 import 'package:mobile_survey/utility/network_util.dart';
+import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -45,18 +52,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       AttachmentListBloc(attachmentListRepo: AttachmentListRepo());
   QuestionListBloc questionListBloc =
       QuestionListBloc(questionListRepo: QuestionListRepo());
+  ReferenceListBloc referencelistBloc =
+      ReferenceListBloc(referenceRepo: ReferenceRepo());
+
   List<Data> taskListData = [];
+  List<Data> taskListDataWaiting = [];
   late User userData;
-  bool isLoading = true, isLoadingListData = true, isExpired = false;
+  bool isLoading = true,
+      isLoadingListData = true,
+      isExpired = false,
+      isFirstTime = true;
   int ongoing = 0;
   int returned = 0;
   int done = 0;
-  int countQuestion = 0, countAttachment = 0;
+  int countQuestion = 0, countAttachment = 0, countReference = 0;
   @override
   void initState() {
     NetworkInfo(internetConnectionChecker).isConnected.then((value) async {
       if (value) {
-        getData();
+        SharedPrefUtil.getSharedBool('first').then((val) {
+          if (val == null) {
+            isFirstTime = true;
+          } else {
+            isFirstTime = false;
+          }
+
+          getData();
+        });
       } else {
         log('No Connection');
 
@@ -107,11 +129,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _pullRefresh() async {
     setState(() {
+      isFirstTime = false;
       isLoading = true;
       isLoadingListData = true;
       ongoing = 0;
       returned = 0;
       done = 0;
+      taskListData = [];
+      taskListDataWaiting = [];
     });
     taskListBloc.add(const TaskListAttempt());
     getUserData();
@@ -133,72 +158,95 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final database =
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.taskListDao;
+
     await taskListDao.findAllTaskList().then((value) async {
       if (value.isEmpty) {
-        // log('Task List di db Kosong');
-        for (int i = 0; i < data.length; i++) {
-          final taskList = TaskList(
-              code: data[i].code!,
-              date: data[i].date!,
-              status: data[i].status!,
-              remark: data[i].remark,
-              result: data[i].result,
-              picCode: data[i].picCode!,
-              picName: data[i].picName!,
-              branchName: data[i].branchName!,
-              agreementNo: data[i].agreementNo!,
-              clientName: data[i].clientName!,
-              mobileNo: data[i].mobileNo!,
-              location: data[i].location!,
-              latitude: data[i].latitude!,
-              longitude: data[i].longitude!,
-              type: data[i].type!,
-              appraisalAmount: data[i].appraisalAmount);
-          await taskListDao.insertTaskList(taskList);
-          // log('Task List di db Kosong : berhasil tambah $i');
-        }
+        List<TaskList> taskList = data
+            .map((e) => TaskList(
+                code: e.code!,
+                date: e.date!,
+                status: e.status!,
+                remark: e.remark,
+                result: e.result,
+                picCode: e.picCode!,
+                picName: e.picName!,
+                branchName: e.branchName!,
+                agreementNo: e.agreementNo!,
+                clientName: e.clientName!,
+                mobileNo: e.mobileNo!,
+                location: e.location!,
+                latitude: e.latitude!,
+                longitude: e.longitude!,
+                type: e.type!,
+                appraisalAmount: e.appraisalAmount))
+            .toList();
+        await taskListDao.insertAllTaskList(taskList);
       } else {
         // log('Task List di db Isi');
-        for (int i = 0; i < data.length; i++) {
-          await taskListDao.findTaskListById(data[i].code!).then((value) async {
-            final taskList = TaskList(
-                code: data[i].code!,
-                date: data[i].date!,
-                status: data[i].status!,
-                remark: data[i].remark,
-                result: data[i].result,
-                picCode: data[i].picCode!,
-                picName: data[i].picName!,
-                branchName: data[i].branchName!,
-                agreementNo: data[i].agreementNo!,
-                clientName: data[i].clientName!,
-                mobileNo: data[i].mobileNo!,
-                location: data[i].location!,
-                latitude: data[i].latitude!,
-                longitude: data[i].longitude!,
-                type: data[i].type!,
-                appraisalAmount: data[i].appraisalAmount);
-            if (value == null) {
-              // log('Task List di db Isi : data ke $i tidak ada');
-              await taskListDao.insertTaskList(taskList);
-              // log('Task List di db Isi : data ke $i tidak ada dan berhasil isi');
-            } else {
-              if (value.status == 'WAITING' && data[i].status == 'RETURN') {
-                await taskListDao.deleteTaskListById(taskList.code);
-                await taskListDao.insertTaskList(taskList);
-                // if (value.toJson().toString() != taskList.toJson().toString()) {
-                //   await taskListDao.deleteTaskListById(taskList.code);
-                //   await taskListDao.insertTaskList(taskList);
-                //   // log('Task List di db Isi : data ke $i ada namun ada data ke update dan berhasil isi');
-                // } else {
-                //   // log('Task List di db Isi : data ke $i ada dan isi sama');
-                // }
+        await SharedPrefUtil.saveSharedBool('first', true);
+        await taskListDao.findTaskListByStatus('PENDING').then((value) async {
+          List<Data> taskListTemp = data;
+          if (value.isNotEmpty) {
+            for (int i = 0; i < value.length; i++) {
+              String? code = value[i]!.code;
+              taskListTemp.removeWhere((element) => element.code == code);
+              if (i == value.length - 1) {
+                List<TaskList> taskList = taskListTemp
+                    .map((e) => TaskList(
+                        code: e.code!,
+                        date: e.date!,
+                        status: e.status!,
+                        remark: e.remark,
+                        result: e.result,
+                        picCode: e.picCode!,
+                        picName: e.picName!,
+                        branchName: e.branchName!,
+                        agreementNo: e.agreementNo!,
+                        clientName: e.clientName!,
+                        mobileNo: e.mobileNo!,
+                        location: e.location!,
+                        latitude: e.latitude!,
+                        longitude: e.longitude!,
+                        type: e.type!,
+                        appraisalAmount: e.appraisalAmount))
+                    .toList();
+                await taskListDao.deleteTaskListByStatus('ASSIGN');
+                await taskListDao.deleteTaskListByStatus('RETURN');
+                await taskListDao.deleteTaskListByStatus('DONE');
+                await taskListDao.deleteTaskListByStatus('WAITING');
+                await taskListDao.insertAllTaskList(taskList);
               }
             }
-          });
-        }
+          } else {
+            List<TaskList> taskList = data
+                .map((e) => TaskList(
+                    code: e.code!,
+                    date: e.date!,
+                    status: e.status!,
+                    remark: e.remark,
+                    result: e.result,
+                    picCode: e.picCode!,
+                    picName: e.picName!,
+                    branchName: e.branchName!,
+                    agreementNo: e.agreementNo!,
+                    clientName: e.clientName!,
+                    mobileNo: e.mobileNo!,
+                    location: e.location!,
+                    latitude: e.latitude!,
+                    longitude: e.longitude!,
+                    type: e.type!,
+                    appraisalAmount: e.appraisalAmount))
+                .toList();
+            await taskListDao.deleteTaskListByStatus('ASSIGN');
+            await taskListDao.deleteTaskListByStatus('RETURN');
+            await taskListDao.deleteTaskListByStatus('DONE');
+            await taskListDao.deleteTaskListByStatus('WAITING');
+            await taskListDao.insertAllTaskList(taskList);
+          }
+        });
       }
     });
+
     await _sortingData();
     setState(() {
       isLoadingListData = false;
@@ -211,70 +259,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final questionListDao = database.questionListDao;
     final answerListDao = database.answerListDao;
-    log('question length : ${data.length}');
-    log('code ${taskListData[countQuestion - 1].code!}');
     if (data.isNotEmpty) {
-      await questionListDao
-          .findQuestionListByTaskCode(taskListData[countQuestion - 1].code!)
-          .then((value) async {
-        if (value.isEmpty) {
-          log('Question di db Kosong');
-          for (int i = 0; i < data.length; i++) {
-            final question = QuestionList(
-                code: data[i].code!,
-                taskCode: data[i].taskCode!,
-                questionCode: data[i].questionCode!,
-                questionDesc: data[i].questionDesc!,
-                type: data[i].type!,
-                answer: data[i].answer,
-                answerChoiceId: data[i].answerChoiceId);
-            await questionListDao.insertQuestionList(question);
-            // log('Question List di db Kosong : berhasil tambah');
-            if (data[i].answerChoice!.isNotEmpty) {
-              for (int x = 0; x < data[i].answerChoice!.length; x++) {
-                // log('Answer List length ${data[i].answerChoice!.length}');
-                final answer = AnswerList(
-                    id: data[i].answerChoice![x].id!,
-                    questionOptionDesc:
-                        data[i].answerChoice![x].questionOptionDesc!,
-                    taskQuestionCode: question.code);
-                // log('Answer Code ${answer.taskQuestionCode}');
-                await answerListDao.insertAnswerList(answer);
-                log('Answer List di db Kosong : berhasil tambah ${answer.taskQuestionCode}');
-              }
-            }
-          }
-        } else {
-          log('Question di db Isi');
-          for (int i = 0; i < data.length; i++) {
-            final question = QuestionList(
-                code: data[i].code!,
-                taskCode: data[i].taskCode!,
-                questionCode: data[i].questionCode!,
-                questionDesc: data[i].questionDesc!,
-                type: data[i].type!,
-                answer: data[i].answer,
-                answerChoiceId: data[i].answerChoiceId);
-            await questionListDao.deleteQuestionListById(data[i].code!);
-            await questionListDao.insertQuestionList(question);
-            if (data[i].answerChoice!.isNotEmpty) {
-              await answerListDao.deleteAnswerListById(question.code);
-              for (int x = 0; x < data[i].answerChoice!.length; x++) {
-                final answer = AnswerList(
-                    id: data[i].answerChoice![x].id!,
-                    questionOptionDesc:
-                        data[i].answerChoice![x].questionOptionDesc!,
-                    taskQuestionCode: question.code);
+      List<QuestionList> questionList = data
+          .map((e) => QuestionList(
+              code: e.code!,
+              taskCode: e.taskCode!,
+              questionCode: e.questionCode!,
+              questionDesc: e.questionDesc!,
+              type: e.type!,
+              answer: e.answer,
+              answerChoiceId: e.answerChoiceId))
+          .toList();
 
-                await answerListDao.insertAnswerList(answer);
+      await questionListDao.insertAllQuestionList(questionList);
 
-                // log('Answer Null Delete Tambah');
-              }
-            }
-          }
+      for (int i = 0; i < data.length; i++) {
+        if (data[i].answerChoice!.isNotEmpty) {
+          List<AnswerList> answerList = data[i]
+              .answerChoice!
+              .map((e) => AnswerList(
+                  id: e.id!,
+                  questionOptionDesc: e.questionOptionDesc!,
+                  taskQuestionCode: data[i].code!))
+              .toList();
+
+          await answerListDao.insertAllAnswerList(answerList);
         }
-      });
+      }
+      database.close();
+    }
+  }
 
+  Future<void> _processDeleteDbQuestion(List<Data> data) async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final questionListDao = database.questionListDao;
+    final answerListDao = database.answerListDao;
+    if (data.isNotEmpty) {
+      for (int i = 0; i < data.length; i++) {
+        await questionListDao.deleteQuestionListByCode(data[i].code!);
+      }
+      await answerListDao.deleteAnswerList();
+      await questionListDao
+          .findAllQuestionList()
+          .then((value) => log('${value.length}'));
+      await answerListDao
+          .findAllAnswerList()
+          .then((value) => log('${value.length}'));
       database.close();
     }
   }
@@ -459,55 +490,63 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final attachmentListDao = database.attachmentListDao;
 
-    await attachmentListDao.findAllAttachmentList().then((value) async {
-      if (value.isEmpty) {
-        // log('Attachment di db Kosong');
-        for (int i = 0; i < data.length; i++) {
-          final attachment = AttachmentList(
-              id: data[i].id!,
-              taskCode: data[i].taskCode!,
-              documentCode: data[i].documentCode!,
-              documentName: data[i].documentName!,
-              type: data[i].type!,
-              fileName: data[i].fileName!,
-              filePath: data[i].filePath!);
-          await attachmentListDao.insertAttachmentList(attachment);
-          // log('Attachment List di db Kosong : berhasil tambah');
-        }
-      } else {
-        for (int i = 0; i < data.length; i++) {
-          await attachmentListDao
-              .findAttachmentListById(data[i].documentCode!, data[i].taskCode!)
-              .then((value) async {
-            final attachment = AttachmentList(
-                id: data[i].id!,
-                taskCode: data[i].taskCode!,
-                documentCode: data[i].documentCode!,
-                documentName: data[i].documentName!,
-                type: data[i].type!,
-                fileName: data[i].fileName!,
-                filePath: data[i].filePath!);
-            if (value == null) {
-              await attachmentListDao.insertAttachmentList(attachment);
-              // log('Attachment List di db Kosong : berhasil tambah');
-            } else {
-              if (value.toJson().toString() != attachment.toJson().toString()) {
-                await attachmentListDao.deleteAttachmentListById(
-                    attachment.documentCode, attachment.taskCode);
-                await attachmentListDao.insertAttachmentList(attachment);
-                // log('Attachment List di db Isi : data ke $i ada namun ada data ke update dan berhasil isi');
-              } else {
-                // log('Attachment List di db Isi : data ke $i ada dan isi sama');
-              }
-            }
-          });
-        }
-      }
-    });
+    List<AttachmentList> attachmentList = data
+        .map((e) => AttachmentList(
+            id: e.id!,
+            taskCode: e.taskCode!,
+            documentCode: e.documentCode!,
+            documentName: e.documentName!,
+            type: e.type!,
+            fileName: e.fileName!,
+            filePath: e.filePath!))
+        .toList();
 
-    setState(() {
-      isLoadingListData = false;
-    });
+    await attachmentListDao.insertAllAttachmentList(attachmentList);
+
+    database.close();
+  }
+
+  Future<void> _processDeleteDbAttachment(List<Data> data) async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final attachmentListDao = database.attachmentListDao;
+
+    for (int i = 0; i < data.length; i++) {
+      await attachmentListDao.deleteAttachmentListByCode(data[i].code!);
+    }
+
+    database.close();
+  }
+
+  Future<void> _processDbReference(List<rfr.Data> data) async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final referenceListDao = database.referenceListDao;
+
+    List<ReferenceList> referenceList = data
+        .map((e) => ReferenceList(
+            id: e.id!,
+            taskCode: e.taskCode!,
+            name: e.name!,
+            phoneArea: e.areaPhoneNo!,
+            phoneNumber: e.phoneNo!,
+            remark: e.remark!,
+            value: e.value!))
+        .toList();
+
+    await referenceListDao.insertAllRefrence(referenceList);
+
+    database.close();
+  }
+
+  Future<void> _processDeleteDbReference(List<Data> data) async {
+    final database =
+        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
+    final referenceListDao = database.referenceListDao;
+
+    for (int i = 0; i < data.length; i++) {
+      await referenceListDao.deleteRefrenceById(data[i].code!);
+    }
     database.close();
   }
 
@@ -554,10 +593,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   state.taskListResponseModel.data!);
                               if (state
                                   .taskListResponseModel.data!.isNotEmpty) {
-                                taskListData
-                                    .addAll(state.taskListResponseModel.data!);
-                                questionListBloc.add(QuestionListAttempt(
-                                    taskListData[countQuestion].code!));
+                                if (isFirstTime) {
+                                  taskListData.addAll(
+                                      state.taskListResponseModel.data!);
+                                  questionListBloc.add(QuestionListAttempt(
+                                      taskListData[countQuestion].code!));
+                                } else {
+                                  taskListData = state
+                                      .taskListResponseModel.data!
+                                      .where((element) =>
+                                          element.status != 'WAITING')
+                                      .toList();
+                                  await _processDeleteDbQuestion(taskListData);
+                                  questionListBloc.add(QuestionListAttempt(
+                                      taskListData[countQuestion].code!));
+                                }
                               } else {
                                 setState(() {
                                   isLoadingListData = false;
@@ -598,6 +648,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   questionListBloc.add(QuestionListAttempt(
                                       taskListData[countQuestion].code!));
                                 } else {
+                                  if (!isFirstTime) {
+                                    await _processDeleteDbAttachment(
+                                        taskListData);
+                                  }
                                   attachmentListBloc.add(AttachmentListAttempt(
                                       taskListData[countAttachment].code!));
                                 }
@@ -606,6 +660,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   questionListBloc.add(QuestionListAttempt(
                                       taskListData[countQuestion].code!));
                                 } else {
+                                  if (!isFirstTime) {
+                                    _processDeleteDbAttachment(taskListData);
+                                  }
                                   attachmentListBloc.add(AttachmentListAttempt(
                                       taskListData[countAttachment].code!));
                                 }
@@ -643,14 +700,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   attachmentListBloc.add(AttachmentListAttempt(
                                       taskListData[countAttachment].code!));
                                 } else {
-                                  Navigator.pop(context);
+                                  if (!isFirstTime) {
+                                    await _processDeleteDbReference(
+                                        taskListData);
+                                  }
+
+                                  referencelistBloc.add(ReferenceListAttempt(
+                                      taskListData[countReference].code!));
                                 }
                               } else {
                                 if (countAttachment < taskListData.length) {
                                   attachmentListBloc.add(AttachmentListAttempt(
                                       taskListData[countAttachment].code!));
                                 } else {
-                                  Navigator.pop(context);
+                                  if (!isFirstTime) {
+                                    _processDeleteDbReference(taskListData);
+                                  }
+                                  referencelistBloc.add(ReferenceListAttempt(
+                                      taskListData[countReference].code!));
                                 }
                               }
                             }
@@ -672,7 +739,58 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               }
                             }
                           },
-                        )
+                        ),
+                        BlocListener(
+                          bloc: referencelistBloc,
+                          listener: (_, ReferenceListState state) async {
+                            if (state is ReferenceListLoaded) {
+                              countReference++;
+                              if (state.referenceListResponseModel.data!
+                                  .isNotEmpty) {
+                                await _processDbReference(
+                                    state.referenceListResponseModel.data!);
+                                if (countReference < taskListData.length) {
+                                  referencelistBloc.add(ReferenceListAttempt(
+                                      taskListData[countReference].code!));
+                                } else {
+                                  setState(() {
+                                    isLoadingListData = false;
+                                    isFirstTime = false;
+                                  });
+                                  Navigator.pop(context);
+                                }
+                              } else {
+                                if (countReference < taskListData.length) {
+                                  referencelistBloc.add(ReferenceListAttempt(
+                                      taskListData[countReference].code!));
+                                } else {
+                                  setState(() {
+                                    isLoadingListData = false;
+                                    isFirstTime = false;
+                                  });
+                                  Navigator.pop(context);
+                                }
+                              }
+                            }
+                            if (state is ReferenceListError) {
+                              setState(() {
+                                isLoadingListData = false;
+                              });
+                              // ignore: use_build_context_synchronously
+                              Navigator.pop(context);
+                            }
+                            if (state is ReferenceListException) {
+                              setState(() {
+                                isLoadingListData = false;
+                              });
+                              if (state.error == 'expired') {
+                                // ignore: use_build_context_synchronously
+                                Navigator.pop(context);
+                                _sessionExpired();
+                              }
+                            }
+                          },
+                        ),
                       ],
                       child: isLoadingListData
                           ? const LoadingGridComp(

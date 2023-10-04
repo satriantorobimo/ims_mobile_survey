@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 
 import '../../../components/color_comp.dart';
 import '../../../utility/string_router_util.dart';
 
 class ButtonNext1Widget extends StatelessWidget {
-  const ButtonNext1Widget({super.key, required this.taskList});
+  const ButtonNext1Widget(
+      {super.key, required this.taskList, required this.date});
   final TaskList taskList;
+  final String date;
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +17,28 @@ class ButtonNext1Widget extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
       child: InkWell(
         onTap: () {
+          DateTime tempDate = DateFormat('dd/MM/yyyy').parse(date);
+          var inputDate = DateTime.parse(tempDate.toString());
+          var outputFormat = DateFormat('yyyy-MM-dd');
+          var outputDate = outputFormat.format(inputDate);
           Navigator.pushNamed(context, StringRouterUtil.form2ScreenRoute,
-              arguments: taskList);
+              arguments: TaskList(
+                  code: taskList.code,
+                  date: outputDate,
+                  status: taskList.status,
+                  remark: taskList.remark,
+                  result: taskList.result,
+                  picCode: taskList.picCode,
+                  picName: taskList.picName,
+                  branchName: taskList.branchName,
+                  agreementNo: taskList.agreementNo,
+                  clientName: taskList.clientName,
+                  mobileNo: taskList.mobileNo,
+                  location: taskList.location,
+                  latitude: taskList.latitude,
+                  longitude: taskList.longitude,
+                  type: taskList.type,
+                  appraisalAmount: taskList.appraisalAmount));
         },
         child: Container(
           width: double.infinity,

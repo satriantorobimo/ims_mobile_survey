@@ -21,6 +21,7 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
   void _showDetail(TaskList taskList) {
     showModalBottomSheet(
         context: context,
+        isScrollControlled: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(25.0),

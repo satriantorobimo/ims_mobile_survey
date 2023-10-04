@@ -23,15 +23,24 @@ class FormSurvey1Screen extends StatefulWidget {
 class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
   late String date;
   late String address = '', area = '', location = '', postal = '';
+  DateTime? _selectedDate = DateTime.now();
   bool isConnect = false;
   final InternetConnectionChecker internetConnectionChecker =
       InternetConnectionChecker();
   @override
   void initState() {
-    DateTime now = DateTime.now();
-    setState(() {
-      date = DateFormat('dd/MM/yyyy').format(now);
-    });
+    if (widget.taskList.status != 'ASSIGN') {
+      DateTime tempDate = DateFormat('yyyy-MM-dd').parse(widget.taskList.date);
+      var inputDate = DateTime.parse(tempDate.toString());
+      var outputFormat = DateFormat('dd/MM/yyyy');
+      date = outputFormat.format(inputDate);
+    } else {
+      setState(() {
+        _selectedDate = DateTime.now();
+        date = DateFormat('dd/MM/yyyy').format(_selectedDate!);
+      });
+    }
+
     NetworkInfo(internetConnectionChecker).isConnected.then((value) {
       if (value) {
         setState(() {
@@ -59,6 +68,26 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
       area = place.administrativeArea!;
       location = place.locality!;
       postal = place.postalCode!;
+    });
+  }
+
+  void _presentDatePicker() {
+    showDatePicker(
+            initialEntryMode: DatePickerEntryMode.calendarOnly,
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime.now().subtract(const Duration(days: 7)),
+            lastDate: DateTime.now().add(const Duration(days: 7)))
+        .then((pickedDate) {
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        _selectedDate = pickedDate;
+        setState(() {
+          date = DateFormat('dd/MM/yyyy').format(_selectedDate!);
+        });
+      });
     });
   }
 
@@ -221,28 +250,48 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Container(
-                                      height: 45,
-                                      padding: const EdgeInsets.all(8),
-                                      width: MediaQuery.of(context).size.width *
-                                          0.40,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.1),
-                                        border: Border.all(
-                                            width: 1.0,
-                                            color:
-                                                Colors.grey.withOpacity(0.5)),
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(10.0)),
-                                      ),
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(date,
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: const Color(0xFF2D2A26)
-                                                    .withOpacity(0.5),
-                                                fontWeight: FontWeight.w400)),
+                                    InkWell(
+                                      onTap: widget.taskList.status ==
+                                                  'ASSIGN' ||
+                                              widget.taskList.status == 'RETURN'
+                                          ? _presentDatePicker
+                                          : null,
+                                      child: Container(
+                                        height: 45,
+                                        padding: const EdgeInsets.all(8),
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.40,
+                                        decoration: BoxDecoration(
+                                          color: widget.taskList.status ==
+                                                      'ASSIGN' ||
+                                                  widget.taskList.status ==
+                                                      'RETURN'
+                                              ? Colors.transparent
+                                              : Colors.grey.withOpacity(0.1),
+                                          border: Border.all(
+                                              width: 1.0,
+                                              color:
+                                                  Colors.grey.withOpacity(0.5)),
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(10.0)),
+                                        ),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(date,
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: widget.taskList
+                                                                  .status ==
+                                                              'ASSIGN' ||
+                                                          widget.taskList
+                                                                  .status ==
+                                                              'RETURN'
+                                                      ? const Color(0xFF2D2A26)
+                                                      : const Color(0xFF2D2A26)
+                                                          .withOpacity(0.5),
+                                                  fontWeight: FontWeight.w400)),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -432,7 +481,10 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: ButtonNext1Widget(taskList: widget.taskList))
+                child: ButtonNext1Widget(
+                  taskList: widget.taskList,
+                  date: date,
+                ))
           ],
         ),
       ),

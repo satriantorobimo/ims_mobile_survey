@@ -15,7 +15,7 @@ class TaskListApi {
   UrlUtil urlUtil = UrlUtil();
 
   Future<SuccessUpdateResponseModel> attemptUpdateTask(String code, String type,
-      String remark, double appraisal, String result) async {
+      String remark, double appraisal, String result, String date) async {
     List a = [];
     final String? token = await SharedPrefUtil.getSharedString('token');
     final dynamic ip = await GeneralUtil.getIpAddress();
@@ -27,11 +27,13 @@ class TaskListApi {
       mapData['p_type'] = type;
       mapData['p_remark'] = remark;
       mapData['p_result'] = result;
+      mapData['p_task_date'] = date;
     } else {
       mapData['p_code'] = code;
       mapData['p_type'] = type;
       mapData['p_remark'] = remark;
       mapData['p_appraisal_amount'] = appraisal;
+      mapData['p_task_date'] = date;
     }
 
     a.add(mapData);

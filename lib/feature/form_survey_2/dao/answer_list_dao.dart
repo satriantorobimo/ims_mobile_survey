@@ -18,8 +18,11 @@ abstract class AnswerListDao {
   @insert
   Future<void> insertAnswerList(AnswerList answerList);
 
-  @delete
-  Future<void> deleteAnswerList(AnswerList answerList);
+  @insert
+  Future<void> insertAllAnswerList(List<AnswerList> answerList);
+
+  @Query('DELETE FROM AnswerList')
+  Future<void> deleteAnswerList();
 
   @update
   Future<void> updateAnswerList(AnswerList answerList);

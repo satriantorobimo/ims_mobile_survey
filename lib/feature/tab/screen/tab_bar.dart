@@ -20,7 +20,8 @@ class _TabBarScreenState extends State<TabBarScreen> {
       return const HomeScreen();
     }
     if (index == 1) {
-      return const AssignmentScreen();
+      var bottomBarProvider = Provider.of<TabProvider>(context);
+      return AssignmentScreen(tabNumber: bottomBarProvider.tabNumber);
     }
     if (index == 2) {
       return const PendingScreen();
@@ -42,6 +43,7 @@ class _TabBarScreenState extends State<TabBarScreen> {
           backgroundColor: Colors.white,
           onTap: (index) {
             bottomBarProvider.setPage(index);
+            bottomBarProvider.setTab(0);
           },
           iconSize: 18,
           selectedFontSize: 13,

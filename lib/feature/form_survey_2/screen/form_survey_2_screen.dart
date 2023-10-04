@@ -37,10 +37,6 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
   }
 
   Widget txtBox(String subLabel, int index, int isMandatory) {
-    if (widget.taskList.status == 'WAITING' ||
-        widget.taskList.status == 'DONE') {
-      controllers[index].text = data[index].answer!;
-    }
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -264,7 +260,12 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
         for (int i = 0; i < value.length; i++) {
           controllers.add(TextEditingController());
           late List<AnswerChoice> answerList = [];
-          log('lalala ${value[i]!.code}');
+          if (widget.taskList.status == 'WAITING' ||
+              widget.taskList.status == 'DONE' ||
+              widget.taskList.status == 'RETURN') {
+            controllers[i].text = value[i]!.answer!;
+          }
+
           await answerListDao
               .findAnswerListByCode(value[i]!.code)
               .then((values) {
@@ -388,7 +389,9 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                 },
                                 scrollDirection: Axis.vertical,
                                 itemCount: data.length,
-                                padding: const EdgeInsets.only(bottom: 80),
+                                padding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context).size.height *
+                                        0.5),
                                 itemBuilder: (context, index) {
                                   final List<String> ddItems = [];
 

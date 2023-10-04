@@ -10,7 +10,8 @@ import 'package:mobile_survey/utility/database_util.dart';
 import 'package:provider/provider.dart';
 
 class AssignmentScreen extends StatefulWidget {
-  const AssignmentScreen({super.key});
+  const AssignmentScreen({super.key, required this.tabNumber});
+  final int tabNumber;
 
   @override
   State<AssignmentScreen> createState() => _AssignmentScreenState();
@@ -40,6 +41,7 @@ class _AssignmentScreenState extends State<AssignmentScreen>
   @override
   void initState() {
     _tabController = TabController(length: 4, vsync: this);
+
     _sortingData();
     super.initState();
   }
@@ -94,6 +96,7 @@ class _AssignmentScreenState extends State<AssignmentScreen>
     });
 
     setState(() {
+      _tabController.index = widget.tabNumber;
       isLoading = false;
       database.close();
     });

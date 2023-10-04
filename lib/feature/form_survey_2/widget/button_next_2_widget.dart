@@ -128,20 +128,13 @@ class _ButtonNext2WidgetState extends State<ButtonNext2Widget> {
                       widget.taskList.status == 'WAITING' ||
                       widget.taskList.status == 'DONE'
                   ? () {
-                      Navigator.pushNamed(
-                          context, StringRouterUtil.form3ScreenRoute,
-                          arguments: ArgsSubmitDataModel(
-                              answerResults: widget.results,
-                              taskList: widget.taskList,
-                              uploadAttachment: [],
-                              refrence: []));
-                    }
-                  : widget.results.isEmpty
-                      ? null
-                      : () {
-                          if (widget.results.length < widget.lengthQuestion) {
+                      if (widget.results.isNotEmpty) {
+                        for (int i = 0; i < widget.results.length; i++) {
+                          if (widget.results[i].pAnswer == '') {
                             _notComplete();
-                          } else {
+                            break;
+                          }
+                          if (i == widget.results.length - 1) {
                             Navigator.pushNamed(
                                 context, StringRouterUtil.form3ScreenRoute,
                                 arguments: ArgsSubmitDataModel(
@@ -149,6 +142,39 @@ class _ButtonNext2WidgetState extends State<ButtonNext2Widget> {
                                     taskList: widget.taskList,
                                     uploadAttachment: [],
                                     refrence: []));
+                          }
+                        }
+                      } else {
+                        Navigator.pushNamed(
+                            context, StringRouterUtil.form3ScreenRoute,
+                            arguments: ArgsSubmitDataModel(
+                                answerResults: widget.results,
+                                taskList: widget.taskList,
+                                uploadAttachment: [],
+                                refrence: []));
+                      }
+                    }
+                  : widget.results.isEmpty
+                      ? null
+                      : () {
+                          if (widget.results.length < widget.lengthQuestion) {
+                            _notComplete();
+                          } else {
+                            for (int i = 0; i < widget.results.length; i++) {
+                              if (widget.results[i].pAnswer == '') {
+                                _notComplete();
+                                break;
+                              }
+                              if (i == widget.results.length - 1) {
+                                Navigator.pushNamed(
+                                    context, StringRouterUtil.form3ScreenRoute,
+                                    arguments: ArgsSubmitDataModel(
+                                        answerResults: widget.results,
+                                        taskList: widget.taskList,
+                                        uploadAttachment: [],
+                                        refrence: []));
+                              }
+                            }
                           }
                         },
               child: Container(

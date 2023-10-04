@@ -123,4 +123,12 @@ class UrlUtil {
     final String urlInsertReference2 = urlInsertReference();
     return baseUrl + urlInsertReference2;
   }
+
+  static String urlListReference() =>
+      'api/mobsvy_api/api/TaskReference/Getrows';
+
+  String getUrlListReference() {
+    final String urlInsertReference2 = urlListReference();
+    return baseUrl + urlInsertReference2;
+  }
 }

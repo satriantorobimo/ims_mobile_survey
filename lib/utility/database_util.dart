@@ -8,6 +8,8 @@ import 'package:mobile_survey/feature/form_survey_2/data/answer_list_data_model.
 import 'package:mobile_survey/feature/form_survey_2/data/question_list_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_3/dao/attachment_list_dao.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_data_model.dart';
+import 'package:mobile_survey/feature/form_survey_4/dao/reference_dao.dart';
+import 'package:mobile_survey/feature/form_survey_4/data/reference_list_model.dart';
 import 'package:mobile_survey/feature/form_survey_5/dao/pending_answer_dao.dart';
 import 'package:mobile_survey/feature/form_survey_5/dao/pending_attachment_dao.dart';
 import 'package:mobile_survey/feature/form_survey_5/dao/pending_reference_dao.dart';
@@ -22,12 +24,13 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'database_util.g.dart';
 
-@Database(version: 19, entities: [
+@Database(version: 30, entities: [
   User,
   TaskList,
   QuestionList,
   AnswerList,
   AttachmentList,
+  ReferenceList,
   PendingAnswer,
   PendingAttachment,
   PendingSummary,
@@ -39,6 +42,7 @@ abstract class AppDatabase extends FloorDatabase {
   QuestionListDao get questionListDao;
   AnswerListDao get answerListDao;
   AttachmentListDao get attachmentListDao;
+  ReferenceListDao get referenceListDao;
   PendingAttachmentDao get pendingAttachmentDao;
   PendingAnswerDao get pendingAnswerDao;
   PendingReferenceDao get pendingReferenceDao;

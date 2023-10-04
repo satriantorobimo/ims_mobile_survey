@@ -74,6 +74,14 @@ class _PendingScreenState extends State<PendingScreen>
       }
     });
 
+    await taskListDao.findAllTaskList().then((value) async {
+      for (int i = 0; i < value.length; i++) {
+        // setState(() {
+        //   pending.add(value[i]!);
+        // });
+      }
+    });
+
     setState(() {
       isLoading = false;
       database.close();
@@ -156,8 +164,8 @@ class _PendingScreenState extends State<PendingScreen>
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.taskListDao;
     try {
-      await taskListDao.updateTaskStatusById(taskCode, 'WAITING',
-          pendingSummary.remark, pendingSummary.notes!, pendingSummary.value!);
+      await taskListDao.updateTaskData('WAITING', pendingSummary.remark,
+          pendingSummary.notes!, pendingSummary.value!, taskCode);
     } catch (e) {
       log(e.toString());
     }
@@ -301,8 +309,12 @@ class _PendingScreenState extends State<PendingScreen>
     await getSummary(pending[taskCount].code);
 
     updateQuestionBloc.add(UpdateQuestionAttempt(AnswerResultsModel(
-        pAnswer: answer[questionCount].pAnswer,
-        pAnswerChoiceId: answer[questionCount].pAnswerChoiceId,
+        pAnswer: answer[questionCount].pAnswer == ''
+            ? null
+            : answer[questionCount].pAnswer,
+        pAnswerChoiceId: answer[questionCount].pAnswerChoiceId == 0
+            ? null
+            : answer[questionCount].pAnswerChoiceId,
         pCode: answer[questionCount].pCode)));
   }
 
@@ -384,9 +396,16 @@ class _PendingScreenState extends State<PendingScreen>
                               if (questionCount < answer.length) {
                                 updateQuestionBloc.add(UpdateQuestionAttempt(
                                     AnswerResultsModel(
-                                        pAnswer: answer[questionCount].pAnswer,
+                                        pAnswer:
+                                            answer[questionCount].pAnswer == ''
+                                                ? null
+                                                : answer[questionCount].pAnswer,
                                         pAnswerChoiceId: answer[questionCount]
-                                            .pAnswerChoiceId,
+                                                    .pAnswerChoiceId ==
+                                                0
+                                            ? null
+                                            : answer[questionCount]
+                                                .pAnswerChoiceId,
                                         pCode: answer[questionCount].pCode)));
                               } else {
                                 log('Start upload $attachmentCount');
@@ -435,7 +454,8 @@ class _PendingScreenState extends State<PendingScreen>
                                       pending[taskCount].type,
                                       pendingSummary.remark,
                                       pendingSummary.value ?? 0,
-                                      pendingSummary.notes!));
+                                      pendingSummary.notes!,
+                                      pending[taskCount].date));
                                 }
                               }
                             }
@@ -486,7 +506,8 @@ class _PendingScreenState extends State<PendingScreen>
                                       pending[taskCount].type,
                                       pendingSummary.remark,
                                       pendingSummary.value ?? 0,
-                                      pendingSummary.notes!));
+                                      pendingSummary.notes!,
+                                      pending[taskCount].date));
                                 } else {
                                   log('Start insert ref $refCount');
                                   if (reference.isNotEmpty) {
@@ -507,7 +528,8 @@ class _PendingScreenState extends State<PendingScreen>
                                         pending[taskCount].type,
                                         pendingSummary.remark,
                                         pendingSummary.value ?? 0,
-                                        pendingSummary.notes!));
+                                        pendingSummary.notes!,
+                                        pending[taskCount].date));
                                   }
                                 }
                               }
@@ -549,7 +571,8 @@ class _PendingScreenState extends State<PendingScreen>
                                     pending[taskCount].type,
                                     pendingSummary.remark,
                                     pendingSummary.value ?? 0,
-                                    pendingSummary.notes!));
+                                    pendingSummary.notes!,
+                                    pending[taskCount].date));
                               }
                             }
                             if (state is ReferenceError) {

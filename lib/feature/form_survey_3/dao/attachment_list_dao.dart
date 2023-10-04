@@ -18,8 +18,14 @@ abstract class AttachmentListDao {
       'DELETE FROM AttachmentList WHERE documentCode = :documentCode and taskCode = :taskCode')
   Future<void> deleteAttachmentListById(String documentCode, String taskCode);
 
+  @Query('DELETE FROM AttachmentList WHERE taskCode = :taskCode')
+  Future<void> deleteAttachmentListByCode(String taskCode);
+
   @insert
   Future<void> insertAttachmentList(AttachmentList answerList);
+
+  @insert
+  Future<void> insertAllAttachmentList(List<AttachmentList> answerList);
 
   @delete
   Future<void> deleteAttachmentList(AttachmentList answerList);

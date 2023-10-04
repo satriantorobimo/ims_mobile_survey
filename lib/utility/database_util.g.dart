@@ -71,6 +71,8 @@ class _$AppDatabase extends AppDatabase {
 
   AttachmentListDao? _attachmentListDaoInstance;
 
+  ReferenceListDao? _referenceListDaoInstance;
+
   PendingAttachmentDao? _pendingAttachmentDaoInstance;
 
   PendingAnswerDao? _pendingAnswerDaoInstance;
@@ -85,7 +87,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 19,
+      version: 30,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -110,6 +112,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `AnswerList` (`ids` INTEGER PRIMARY KEY AUTOINCREMENT, `id` INTEGER NOT NULL, `task_question_code` TEXT NOT NULL, `questionOptionDesc` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `AttachmentList` (`ids` INTEGER PRIMARY KEY AUTOINCREMENT, `id` INTEGER NOT NULL, `taskCode` TEXT NOT NULL, `documentCode` TEXT NOT NULL, `documentName` TEXT NOT NULL, `fileName` TEXT NOT NULL, `filePath` TEXT NOT NULL, `type` TEXT NOT NULL)');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `ReferenceList` (`id` INTEGER NOT NULL, `taskCode` TEXT NOT NULL, `name` TEXT NOT NULL, `phoneArea` TEXT NOT NULL, `phoneNumber` TEXT NOT NULL, `remark` TEXT NOT NULL, `value` REAL NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `PendingAnswer` (`ids` INTEGER PRIMARY KEY AUTOINCREMENT, `taskCode` TEXT NOT NULL, `pCode` TEXT NOT NULL, `pAnswer` TEXT, `pAnswerChoiceId` INTEGER)');
         await database.execute(
@@ -150,6 +154,12 @@ class _$AppDatabase extends AppDatabase {
   AttachmentListDao get attachmentListDao {
     return _attachmentListDaoInstance ??=
         _$AttachmentListDao(database, changeListener);
+  }
+
+  @override
+  ReferenceListDao get referenceListDao {
+    return _referenceListDaoInstance ??=
+        _$ReferenceListDao(database, changeListener);
   }
 
   @override
@@ -276,6 +286,28 @@ class _$TaskListDao extends TaskListDao {
                   'longitude': item.longitude,
                   'type': item.type,
                   'appraisalAmount': item.appraisalAmount
+                }),
+        _taskListUpdateAdapter = UpdateAdapter(
+            database,
+            'TaskList',
+            ['code'],
+            (TaskList item) => <String, Object?>{
+                  'code': item.code,
+                  'date': item.date,
+                  'status': item.status,
+                  'remark': item.remark,
+                  'result': item.result,
+                  'picCode': item.picCode,
+                  'picName': item.picName,
+                  'branchName': item.branchName,
+                  'agreementNo': item.agreementNo,
+                  'clientName': item.clientName,
+                  'mobileNo': item.mobileNo,
+                  'location': item.location,
+                  'latitude': item.latitude,
+                  'longitude': item.longitude,
+                  'type': item.type,
+                  'appraisalAmount': item.appraisalAmount
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -285,6 +317,8 @@ class _$TaskListDao extends TaskListDao {
   final QueryAdapter _queryAdapter;
 
   final InsertionAdapter<TaskList> _taskListInsertionAdapter;
+
+  final UpdateAdapter<TaskList> _taskListUpdateAdapter;
 
   @override
   Future<List<TaskList?>> findAllTaskList() async {
@@ -361,21 +395,47 @@ class _$TaskListDao extends TaskListDao {
   }
 
   @override
+  Future<void> deleteTaskListByStatus(String status) async {
+    await _queryAdapter.queryNoReturn('DELETE FROM TaskList WHERE status = ?1',
+        arguments: [status]);
+  }
+
+  @override
   Future<void> updateTaskStatusById(
+    String status,
     String code,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE TaskList SET status = ?1 WHERE code = ?2',
+        arguments: [status, code]);
+  }
+
+  @override
+  Future<void> updateTaskData(
     String status,
     String remark,
     String result,
     double appraisal,
+    String code,
   ) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE TaskList SET status = ?2 AND remark = ?3 AND result = ?4 AND appraisalAmount = ?5 WHERE code = ?1',
-        arguments: [code, status, remark, result, appraisal]);
+        'UPDATE TaskList SET status = ?1 AND remark = ?2 AND result = ?3 AND appraisalAmount = ?4 WHERE code = ?5',
+        arguments: [status, remark, result, appraisal, code]);
   }
 
   @override
   Future<void> insertTaskList(TaskList user) async {
     await _taskListInsertionAdapter.insert(user, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> insertAllTaskList(List<TaskList> user) async {
+    await _taskListInsertionAdapter.insertList(user, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> updateTask(TaskList user) async {
+    await _taskListUpdateAdapter.update(user, OnConflictStrategy.abort);
   }
 }
 
@@ -486,19 +546,32 @@ class _$QuestionListDao extends QuestionListDao {
   }
 
   @override
+  Future<void> deleteQuestionListByCode(String taskCode) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM QuestionList WHERE task_code = ?1',
+        arguments: [taskCode]);
+  }
+
+  @override
   Future<void> updateQuestionListById(
     String code,
     String answer,
     int answerChoiceId,
   ) async {
     await _queryAdapter.queryNoReturn(
-        'UPDATE QuestionList SET answer = ?2 AND answerChoiceId = ?3 WHERE code = ?1',
+        'UPDATE QuestionList SET answer = ?2 IS NOT NULL AND answerChoiceId = ?3 WHERE code = ?1',
         arguments: [code, answer, answerChoiceId]);
   }
 
   @override
   Future<void> insertQuestionList(QuestionList questionList) async {
     await _questionListInsertionAdapter.insert(
+        questionList, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> insertAllQuestionList(List<QuestionList> questionList) async {
+    await _questionListInsertionAdapter.insertList(
         questionList, OnConflictStrategy.abort);
   }
 
@@ -537,16 +610,6 @@ class _$AnswerListDao extends AnswerListDao {
                   'id': item.id,
                   'task_question_code': item.taskQuestionCode,
                   'questionOptionDesc': item.questionOptionDesc
-                }),
-        _answerListDeletionAdapter = DeletionAdapter(
-            database,
-            'AnswerList',
-            ['ids'],
-            (AnswerList item) => <String, Object?>{
-                  'ids': item.ids,
-                  'id': item.id,
-                  'task_question_code': item.taskQuestionCode,
-                  'questionOptionDesc': item.questionOptionDesc
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -558,8 +621,6 @@ class _$AnswerListDao extends AnswerListDao {
   final InsertionAdapter<AnswerList> _answerListInsertionAdapter;
 
   final UpdateAdapter<AnswerList> _answerListUpdateAdapter;
-
-  final DeletionAdapter<AnswerList> _answerListDeletionAdapter;
 
   @override
   Future<List<AnswerList>> findAllAnswerList() async {
@@ -603,19 +664,25 @@ class _$AnswerListDao extends AnswerListDao {
   }
 
   @override
+  Future<void> deleteAnswerList() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM AnswerList');
+  }
+
+  @override
   Future<void> insertAnswerList(AnswerList answerList) async {
     await _answerListInsertionAdapter.insert(
         answerList, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> updateAnswerList(AnswerList answerList) async {
-    await _answerListUpdateAdapter.update(answerList, OnConflictStrategy.abort);
+  Future<void> insertAllAnswerList(List<AnswerList> answerList) async {
+    await _answerListInsertionAdapter.insertList(
+        answerList, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> deleteAnswerList(AnswerList answerList) async {
-    await _answerListDeletionAdapter.delete(answerList);
+  Future<void> updateAnswerList(AnswerList answerList) async {
+    await _answerListUpdateAdapter.update(answerList, OnConflictStrategy.abort);
   }
 }
 
@@ -728,8 +795,21 @@ class _$AttachmentListDao extends AttachmentListDao {
   }
 
   @override
+  Future<void> deleteAttachmentListByCode(String taskCode) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM AttachmentList WHERE taskCode = ?1',
+        arguments: [taskCode]);
+  }
+
+  @override
   Future<void> insertAttachmentList(AttachmentList answerList) async {
     await _attachmentListInsertionAdapter.insert(
+        answerList, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> insertAllAttachmentList(List<AttachmentList> answerList) async {
+    await _attachmentListInsertionAdapter.insertList(
         answerList, OnConflictStrategy.abort);
   }
 
@@ -742,6 +822,136 @@ class _$AttachmentListDao extends AttachmentListDao {
   @override
   Future<void> deleteAttachmentList(AttachmentList answerList) async {
     await _attachmentListDeletionAdapter.delete(answerList);
+  }
+}
+
+class _$ReferenceListDao extends ReferenceListDao {
+  _$ReferenceListDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _referenceListInsertionAdapter = InsertionAdapter(
+            database,
+            'ReferenceList',
+            (ReferenceList item) => <String, Object?>{
+                  'id': item.id,
+                  'taskCode': item.taskCode,
+                  'name': item.name,
+                  'phoneArea': item.phoneArea,
+                  'phoneNumber': item.phoneNumber,
+                  'remark': item.remark,
+                  'value': item.value
+                }),
+        _referenceListUpdateAdapter = UpdateAdapter(
+            database,
+            'ReferenceList',
+            ['id'],
+            (ReferenceList item) => <String, Object?>{
+                  'id': item.id,
+                  'taskCode': item.taskCode,
+                  'name': item.name,
+                  'phoneArea': item.phoneArea,
+                  'phoneNumber': item.phoneNumber,
+                  'remark': item.remark,
+                  'value': item.value
+                }),
+        _referenceListDeletionAdapter = DeletionAdapter(
+            database,
+            'ReferenceList',
+            ['id'],
+            (ReferenceList item) => <String, Object?>{
+                  'id': item.id,
+                  'taskCode': item.taskCode,
+                  'name': item.name,
+                  'phoneArea': item.phoneArea,
+                  'phoneNumber': item.phoneNumber,
+                  'remark': item.remark,
+                  'value': item.value
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<ReferenceList> _referenceListInsertionAdapter;
+
+  final UpdateAdapter<ReferenceList> _referenceListUpdateAdapter;
+
+  final DeletionAdapter<ReferenceList> _referenceListDeletionAdapter;
+
+  @override
+  Future<List<ReferenceList>> findAllRefrence() async {
+    return _queryAdapter.queryList('SELECT * FROM ReferenceList',
+        mapper: (Map<String, Object?> row) => ReferenceList(
+            id: row['id'] as int,
+            taskCode: row['taskCode'] as String,
+            name: row['name'] as String,
+            phoneArea: row['phoneArea'] as String,
+            phoneNumber: row['phoneNumber'] as String,
+            remark: row['remark'] as String,
+            value: row['value'] as double));
+  }
+
+  @override
+  Future<ReferenceList?> findRefrenceById(String taskCode) async {
+    return _queryAdapter.query(
+        'SELECT * FROM ReferenceList WHERE taskCode = ?1',
+        mapper: (Map<String, Object?> row) => ReferenceList(
+            id: row['id'] as int,
+            taskCode: row['taskCode'] as String,
+            name: row['name'] as String,
+            phoneArea: row['phoneArea'] as String,
+            phoneNumber: row['phoneNumber'] as String,
+            remark: row['remark'] as String,
+            value: row['value'] as double),
+        arguments: [taskCode]);
+  }
+
+  @override
+  Future<List<ReferenceList>> findRefrenceByCode(String taskCode) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM ReferenceList WHERE taskCode = ?1',
+        mapper: (Map<String, Object?> row) => ReferenceList(
+            id: row['id'] as int,
+            taskCode: row['taskCode'] as String,
+            name: row['name'] as String,
+            phoneArea: row['phoneArea'] as String,
+            phoneNumber: row['phoneNumber'] as String,
+            remark: row['remark'] as String,
+            value: row['value'] as double),
+        arguments: [taskCode]);
+  }
+
+  @override
+  Future<void> deleteRefrenceById(String taskCode) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM ReferenceList WHERE taskCode = ?1',
+        arguments: [taskCode]);
+  }
+
+  @override
+  Future<void> insertRefrence(ReferenceList reference) async {
+    await _referenceListInsertionAdapter.insert(
+        reference, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> insertAllRefrence(List<ReferenceList> reference) async {
+    await _referenceListInsertionAdapter.insertList(
+        reference, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> updateRefrence(ReferenceList reference) async {
+    await _referenceListUpdateAdapter.update(
+        reference, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> deleteRefrence(ReferenceList reference) async {
+    await _referenceListDeletionAdapter.delete(reference);
   }
 }
 

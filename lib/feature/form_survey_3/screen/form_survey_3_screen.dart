@@ -460,9 +460,16 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                   )),
                                             )
                                           : GestureDetector(
-                                              onTap: () {
-                                                _imageAction(index);
-                                              },
+                                              onTap: widget.argsSubmitDataModel
+                                                              .taskList.status ==
+                                                          'WAITING' ||
+                                                      widget.argsSubmitDataModel
+                                                              .taskList.status ==
+                                                          'DONE'
+                                                  ? null
+                                                  : () {
+                                                      _imageAction(index);
+                                                    },
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   borderRadius:

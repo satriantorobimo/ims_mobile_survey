@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:mobile_survey/feature/assignment/bloc/update_task_bloc/bloc.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/domain/repo/task_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_2/bloc/update_question_bloc/bloc.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
@@ -171,19 +172,32 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
     final taskListDao = database.taskListDao;
     final questionDao = database.questionListDao;
     try {
-      await taskListDao.updateTaskStatusById(
-          widget.argsSubmitDataModel.taskList.code,
-          'WAITING',
-          _notesCtrl.text,
-          _sesuaiCtrl.text,
-          _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
+      final taskList = TaskList(
+          code: widget.argsSubmitDataModel.taskList.code,
+          date: widget.argsSubmitDataModel.taskList.date,
+          status: 'WAITING',
+          remark: _notesCtrl.text,
+          result: _sesuaiCtrl.text,
+          picCode: widget.argsSubmitDataModel.taskList.picCode,
+          picName: widget.argsSubmitDataModel.taskList.picName,
+          branchName: widget.argsSubmitDataModel.taskList.branchName,
+          agreementNo: widget.argsSubmitDataModel.taskList.agreementNo,
+          clientName: widget.argsSubmitDataModel.taskList.clientName,
+          mobileNo: widget.argsSubmitDataModel.taskList.mobileNo,
+          location: widget.argsSubmitDataModel.taskList.location,
+          latitude: widget.argsSubmitDataModel.taskList.latitude,
+          longitude: widget.argsSubmitDataModel.taskList.longitude,
+          type: widget.argsSubmitDataModel.taskList.type,
+          appraisalAmount:
+              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
+      await taskListDao.updateTask(taskList);
       for (int i = 0;
           i < widget.argsSubmitDataModel.answerResults.length;
           i++) {
         await questionDao.updateQuestionListById(
             widget.argsSubmitDataModel.answerResults[i].pCode!,
-            widget.argsSubmitDataModel.answerResults[i].pAnswer!,
-            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId!);
+            widget.argsSubmitDataModel.answerResults[i].pAnswer ?? '',
+            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId ?? 0);
       }
     } catch (e) {
       log(e.toString());
@@ -196,12 +210,25 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final taskListDao = database.taskListDao;
     try {
-      await taskListDao.updateTaskStatusById(
-          widget.argsSubmitDataModel.taskList.code,
-          'PENDING',
-          _notesCtrl.text,
-          _sesuaiCtrl.text,
-          _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
+      final taskList = TaskList(
+          code: widget.argsSubmitDataModel.taskList.code,
+          date: widget.argsSubmitDataModel.taskList.date,
+          status: 'PENDING',
+          remark: _notesCtrl.text,
+          result: _sesuaiCtrl.text,
+          picCode: widget.argsSubmitDataModel.taskList.picCode,
+          picName: widget.argsSubmitDataModel.taskList.picName,
+          branchName: widget.argsSubmitDataModel.taskList.branchName,
+          agreementNo: widget.argsSubmitDataModel.taskList.agreementNo,
+          clientName: widget.argsSubmitDataModel.taskList.clientName,
+          mobileNo: widget.argsSubmitDataModel.taskList.mobileNo,
+          location: widget.argsSubmitDataModel.taskList.location,
+          latitude: widget.argsSubmitDataModel.taskList.latitude,
+          longitude: widget.argsSubmitDataModel.taskList.longitude,
+          type: widget.argsSubmitDataModel.taskList.type,
+          appraisalAmount:
+              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
+      await taskListDao.updateTask(taskList);
       await taskListDao
           .findTaskListById(widget.argsSubmitDataModel.taskList.code)
           .then((value) {
@@ -232,8 +259,8 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
         await taskListDao.insertPendingAnswer(pendingAnswer);
         await questionDao.updateQuestionListById(
             widget.argsSubmitDataModel.answerResults[i].pCode!,
-            widget.argsSubmitDataModel.answerResults[i].pAnswer!,
-            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId!);
+            widget.argsSubmitDataModel.answerResults[i].pAnswer ?? '',
+            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId ?? 0);
         await taskListDao
             .findPendingAnswerById(pendingAnswer.pCode)
             .then((value) {
@@ -833,11 +860,11 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                 _goHomeDraft();
               },
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.35,
+                width: double.infinity,
                 height: 45,
                 decoration: BoxDecoration(
                   color: thirdColor,
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
                     child: Text('Simpan',
@@ -925,7 +952,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                               _valueCtrl.text == ""
                                   ? 0
                                   : double.parse(_valueCtrl.text),
-                              _sesuaiCtrl.text));
+                              _sesuaiCtrl.text, widget.argsSubmitDataModel.taskList.date));
                         }
                       }
                     }
@@ -959,10 +986,10 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                               widget.argsSubmitDataModel.taskList.code,
                               widget.argsSubmitDataModel.taskList.type,
                               _notesCtrl.text,
-                              _valueCtrl.text == ""
-                                  ? 0
+                              _valueCtrl.text.isEmpty
+                                  ? 0.0
                                   : double.parse(_valueCtrl.text),
-                              _sesuaiCtrl.text));
+                              _sesuaiCtrl.text, widget.argsSubmitDataModel.taskList.date));
                         } else {
                           if (widget.argsSubmitDataModel.refrence.isNotEmpty) {
                             referenceBloc.add(InsertReferenceAttempt(
@@ -972,10 +999,11 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                 widget.argsSubmitDataModel.taskList.code,
                                 widget.argsSubmitDataModel.taskList.type,
                                 _notesCtrl.text,
-                                _valueCtrl.text == ""
-                                    ? 0
+                                _valueCtrl.text.isEmpty
+                                    ? 0.0
                                     : double.parse(_valueCtrl.text),
-                                _sesuaiCtrl.text));
+                                _sesuaiCtrl.text,
+                                widget.argsSubmitDataModel.taskList.date));
                           }
                         }
                       }
@@ -1008,10 +1036,11 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                             widget.argsSubmitDataModel.taskList.code,
                             widget.argsSubmitDataModel.taskList.type,
                             _notesCtrl.text,
-                            _valueCtrl.text == ""
-                                ? 0
+                            _valueCtrl.text.isEmpty
+                                ? 0.0
                                 : double.parse(_valueCtrl.text),
-                            _sesuaiCtrl.text));
+                            _sesuaiCtrl.text,
+                            widget.argsSubmitDataModel.taskList.date));
                       }
                     }
                     if (state is ReferenceError) {
@@ -1139,7 +1168,9 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                                         ? 0
                                                         : double.parse(
                                                             _valueCtrl.text),
-                                                    _sesuaiCtrl.text));
+                                                    _sesuaiCtrl.text,
+                                                    widget.argsSubmitDataModel
+                                                        .taskList.date));
                                           }
                                         } else {
                                           _warningOffline();
@@ -1190,7 +1221,9 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                                         ? 0
                                                         : double.parse(
                                                             _valueCtrl.text),
-                                                    _sesuaiCtrl.text));
+                                                    _sesuaiCtrl.text,
+                                                    widget.argsSubmitDataModel
+                                                        .taskList.date));
                                           }
                                         } else {
                                           _warningOffline();

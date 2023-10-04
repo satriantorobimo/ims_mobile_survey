@@ -23,6 +23,7 @@ class MainContentHomeWidget extends StatelessWidget {
             var bottomBarProvider =
                 Provider.of<TabProvider>(context, listen: false);
             bottomBarProvider.setPage(1);
+            bottomBarProvider.setTab(0);
           },
           child: Container(
               decoration: BoxDecoration(
@@ -73,6 +74,7 @@ class MainContentHomeWidget extends StatelessWidget {
             var bottomBarProvider =
                 Provider.of<TabProvider>(context, listen: false);
             bottomBarProvider.setPage(1);
+            bottomBarProvider.setTab(2);
           },
           child: Container(
               decoration: BoxDecoration(
@@ -123,6 +125,7 @@ class MainContentHomeWidget extends StatelessWidget {
             var bottomBarProvider =
                 Provider.of<TabProvider>(context, listen: false);
             bottomBarProvider.setPage(1);
+            bottomBarProvider.setTab(3);
           },
           child: Container(
               decoration: BoxDecoration(
