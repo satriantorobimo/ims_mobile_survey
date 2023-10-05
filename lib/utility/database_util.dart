@@ -24,7 +24,7 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'database_util.g.dart';
 
-@Database(version: 30, entities: [
+@Database(version: 31, entities: [
   User,
   TaskList,
   QuestionList,

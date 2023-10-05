@@ -189,7 +189,9 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           longitude: widget.argsSubmitDataModel.taskList.longitude,
           type: widget.argsSubmitDataModel.taskList.type,
           appraisalAmount:
-              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
+              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text),
+          reviewRemark: widget.argsSubmitDataModel.taskList.reviewRemark,
+          modDate: widget.argsSubmitDataModel.taskList.modDate);
       await taskListDao.updateTask(taskList);
       for (int i = 0;
           i < widget.argsSubmitDataModel.answerResults.length;
@@ -227,7 +229,9 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           longitude: widget.argsSubmitDataModel.taskList.longitude,
           type: widget.argsSubmitDataModel.taskList.type,
           appraisalAmount:
-              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text));
+              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text),
+          reviewRemark: widget.argsSubmitDataModel.taskList.reviewRemark,
+          modDate: widget.argsSubmitDataModel.taskList.modDate);
       await taskListDao.updateTask(taskList);
       await taskListDao
           .findTaskListById(widget.argsSubmitDataModel.taskList.code)
@@ -952,7 +956,8 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                               _valueCtrl.text == ""
                                   ? 0
                                   : double.parse(_valueCtrl.text),
-                              _sesuaiCtrl.text, widget.argsSubmitDataModel.taskList.date));
+                              _sesuaiCtrl.text,
+                              widget.argsSubmitDataModel.taskList.date));
                         }
                       }
                     }
@@ -989,7 +994,8 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                               _valueCtrl.text.isEmpty
                                   ? 0.0
                                   : double.parse(_valueCtrl.text),
-                              _sesuaiCtrl.text, widget.argsSubmitDataModel.taskList.date));
+                              _sesuaiCtrl.text,
+                              widget.argsSubmitDataModel.taskList.date));
                         } else {
                           if (widget.argsSubmitDataModel.refrence.isNotEmpty) {
                             referenceBloc.add(InsertReferenceAttempt(

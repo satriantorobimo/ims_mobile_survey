@@ -38,7 +38,9 @@ class ButtonNext1Widget extends StatelessWidget {
                   latitude: taskList.latitude,
                   longitude: taskList.longitude,
                   type: taskList.type,
-                  appraisalAmount: taskList.appraisalAmount));
+                  appraisalAmount: taskList.appraisalAmount,
+                  reviewRemark: taskList.reviewRemark,
+                  modDate: taskList.modDate));
         },
         child: Container(
           width: double.infinity,

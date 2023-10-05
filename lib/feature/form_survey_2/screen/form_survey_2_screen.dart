@@ -72,7 +72,6 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
               )),
           const SizedBox(height: 16),
           Container(
-            height: 45,
             decoration: BoxDecoration(
               border:
                   Border.all(width: 1.0, color: Colors.grey.withOpacity(0.5)),
@@ -82,6 +81,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
               child: TextFormField(
                 controller: controllers[index],
                 autofocus: false,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
                 enabled: widget.taskList.status == 'WAITING' ||
                         widget.taskList.status == 'DONE'
                     ? false
@@ -260,11 +261,12 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
         for (int i = 0; i < value.length; i++) {
           controllers.add(TextEditingController());
           late List<AnswerChoice> answerList = [];
-          if (widget.taskList.status == 'WAITING' ||
-              widget.taskList.status == 'DONE' ||
-              widget.taskList.status == 'RETURN') {
-            controllers[i].text = value[i]!.answer!;
-          }
+          // if (widget.taskList.status == 'WAITING' ||
+          //     widget.taskList.status == 'DONE' ||
+          //     widget.taskList.status == 'RETURN') {
+          //   controllers[i].text = value[i]!.answer!;
+          // }
+          controllers[i].text = value[i]!.answer!;
 
           await answerListDao
               .findAnswerListByCode(value[i]!.code)

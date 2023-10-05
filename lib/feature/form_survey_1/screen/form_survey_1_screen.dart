@@ -76,7 +76,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
             initialEntryMode: DatePickerEntryMode.calendarOnly,
             context: context,
             initialDate: DateTime.now(),
-            firstDate: DateTime.now().subtract(const Duration(days: 7)),
+            firstDate: DateTime(2020),
             lastDate: DateTime.now().add(const Duration(days: 7)))
         .then((pickedDate) {
       if (pickedDate == null) {
@@ -187,40 +187,35 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                         ],
                       ),
                     ),
-                    // const SizedBox(height: 24),
-                    // Container(
-                    //   width: double.infinity,
-                    //   height: 14,
-                    //   color: Colors.grey.withOpacity(0.06),
-                    // ),
-                    // const SizedBox(height: 24),
-                    // Padding(
-                    //   padding: const EdgeInsets.only(left: 24, right: 24),
-                    //   child: Column(
-                    //     children: [
-                    //       FormInfo1Widget(
-                    //           widthTitle: MediaQuery.of(context).size.width,
-                    //           title: 'Field 1',
-                    //           heightContent: 45,
-                    //           widthContent: MediaQuery.of(context).size.width,
-                    //           content: 'Isi Field 1'),
-                    //       const SizedBox(height: 16),
-                    //       FormInfo1Widget(
-                    //           widthTitle: MediaQuery.of(context).size.width,
-                    //           title: 'Field 2',
-                    //           heightContent: 45,
-                    //           widthContent: MediaQuery.of(context).size.width,
-                    //           content: 'Isi Field 2'),
-                    //       const SizedBox(height: 16),
-                    //       FormInfo1Widget(
-                    //           widthTitle: MediaQuery.of(context).size.width,
-                    //           title: 'Field 3',
-                    //           heightContent: 45,
-                    //           widthContent: MediaQuery.of(context).size.width,
-                    //           content: 'Isi Field 3'),
-                    //     ],
-                    //   ),
-                    // ),
+                    widget.taskList.reviewRemark == null
+                        ? Container()
+                        : Column(
+                            children: [
+                              const SizedBox(height: 24),
+                              Container(
+                                width: double.infinity,
+                                height: 14,
+                                color: Colors.grey.withOpacity(0.06),
+                              ),
+                              const SizedBox(height: 24),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 24, right: 24),
+                                child: Column(
+                                  children: [
+                                    FormInfo1Widget(
+                                        widthTitle:
+                                            MediaQuery.of(context).size.width,
+                                        title: 'Review Remark',
+                                        heightContent: 45,
+                                        widthContent:
+                                            MediaQuery.of(context).size.width,
+                                        content: widget.taskList.reviewRemark!),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                     const SizedBox(height: 24),
                     Container(
                       width: double.infinity,

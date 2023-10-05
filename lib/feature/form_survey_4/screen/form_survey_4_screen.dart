@@ -47,6 +47,10 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
         widget.argsSubmitDataModel.taskList.status == 'RETURN' ||
         widget.argsSubmitDataModel.taskList.status == 'DONE') {
       _getData();
+    } else {
+      setState(() {
+        isLoading = false;
+      });
     }
 
     super.initState();
@@ -1027,6 +1031,9 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
   }
 
   void _getData() async {
+    var formSurvey4Provider =
+        Provider.of<FormSurvey4Provider>(context, listen: false);
+    formSurvey4Provider.clearHubungan();
     final database =
         await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
     final referenceListDao = database.referenceListDao;
@@ -1035,9 +1042,6 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
         .findRefrenceByCode(widget.argsSubmitDataModel.taskList.code)
         .then((value) {
       if (value.isNotEmpty) {
-        var formSurvey4Provider =
-            Provider.of<FormSurvey4Provider>(context, listen: false);
-        formSurvey4Provider.clearHubungan();
         for (int i = 0; i < value.length; i++) {
           formSurvey4Provider.setHubunganModel(HubunganModel(
               taskCode: value[i].taskCode,

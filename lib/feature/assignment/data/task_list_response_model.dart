@@ -59,6 +59,8 @@ class Data {
   String? longitude;
   String? type;
   double? appraisalAmount;
+  String? reviewRemark;
+  String? modDate;
 
   Data(
       {this.code,
@@ -76,7 +78,9 @@ class Data {
       this.latitude,
       this.longitude,
       this.type,
-      this.appraisalAmount});
+      this.appraisalAmount,
+      this.reviewRemark,
+      this.modDate});
 
   Data.fromJson(Map<String, dynamic> json) {
     code = json['code'];
@@ -95,6 +99,8 @@ class Data {
     longitude = json['longitude'];
     type = json['type'];
     appraisalAmount = json['appraisal_amount'];
+    reviewRemark = json['review_remark'];
+    modDate = json['mod_date'];
   }
 
   Map<String, dynamic> toJson() {
@@ -115,6 +121,8 @@ class Data {
     data['longitude'] = longitude;
     data['type'] = type;
     data['appraisal_amount'] = appraisalAmount;
+    data['review_remark'] = reviewRemark;
+    data['mod_date'] = modDate;
     return data;
   }
 }

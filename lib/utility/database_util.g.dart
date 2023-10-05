@@ -87,7 +87,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 30,
+      version: 31,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -105,7 +105,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `User` (`id` INTEGER NOT NULL, `idpp` TEXT NOT NULL, `ucode` TEXT NOT NULL, `name` TEXT NOT NULL, `systemDate` TEXT NOT NULL, `branchCode` TEXT NOT NULL, `branchName` TEXT NOT NULL, `companyCode` TEXT NOT NULL, `companyName` TEXT NOT NULL, `deviceId` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `TaskList` (`code` TEXT NOT NULL, `date` TEXT NOT NULL, `status` TEXT NOT NULL, `remark` TEXT, `result` TEXT, `picCode` TEXT NOT NULL, `picName` TEXT NOT NULL, `branchName` TEXT NOT NULL, `agreementNo` TEXT NOT NULL, `clientName` TEXT NOT NULL, `mobileNo` TEXT NOT NULL, `location` TEXT NOT NULL, `latitude` TEXT NOT NULL, `longitude` TEXT NOT NULL, `type` TEXT NOT NULL, `appraisalAmount` REAL, PRIMARY KEY (`code`))');
+            'CREATE TABLE IF NOT EXISTS `TaskList` (`code` TEXT NOT NULL, `date` TEXT NOT NULL, `status` TEXT NOT NULL, `remark` TEXT, `result` TEXT, `picCode` TEXT NOT NULL, `picName` TEXT NOT NULL, `branchName` TEXT NOT NULL, `agreementNo` TEXT NOT NULL, `clientName` TEXT NOT NULL, `mobileNo` TEXT NOT NULL, `location` TEXT NOT NULL, `latitude` TEXT NOT NULL, `longitude` TEXT NOT NULL, `type` TEXT NOT NULL, `appraisalAmount` REAL, `reviewRemark` TEXT, `modDate` TEXT NOT NULL, PRIMARY KEY (`code`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `QuestionList` (`code` TEXT NOT NULL, `task_code` TEXT NOT NULL, `questionCode` TEXT NOT NULL, `questionDesc` TEXT NOT NULL, `type` TEXT NOT NULL, `answer` TEXT, `answerChoiceId` INTEGER, PRIMARY KEY (`code`))');
         await database.execute(
@@ -285,7 +285,9 @@ class _$TaskListDao extends TaskListDao {
                   'latitude': item.latitude,
                   'longitude': item.longitude,
                   'type': item.type,
-                  'appraisalAmount': item.appraisalAmount
+                  'appraisalAmount': item.appraisalAmount,
+                  'reviewRemark': item.reviewRemark,
+                  'modDate': item.modDate
                 }),
         _taskListUpdateAdapter = UpdateAdapter(
             database,
@@ -307,7 +309,9 @@ class _$TaskListDao extends TaskListDao {
                   'latitude': item.latitude,
                   'longitude': item.longitude,
                   'type': item.type,
-                  'appraisalAmount': item.appraisalAmount
+                  'appraisalAmount': item.appraisalAmount,
+                  'reviewRemark': item.reviewRemark,
+                  'modDate': item.modDate
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -339,7 +343,9 @@ class _$TaskListDao extends TaskListDao {
             latitude: row['latitude'] as String,
             longitude: row['longitude'] as String,
             type: row['type'] as String,
-            appraisalAmount: row['appraisalAmount'] as double?));
+            appraisalAmount: row['appraisalAmount'] as double?,
+            reviewRemark: row['reviewRemark'] as String?,
+            modDate: row['modDate'] as String));
   }
 
   @override
@@ -361,7 +367,9 @@ class _$TaskListDao extends TaskListDao {
             latitude: row['latitude'] as String,
             longitude: row['longitude'] as String,
             type: row['type'] as String,
-            appraisalAmount: row['appraisalAmount'] as double?),
+            appraisalAmount: row['appraisalAmount'] as double?,
+            reviewRemark: row['reviewRemark'] as String?,
+            modDate: row['modDate'] as String),
         arguments: [code]);
   }
 
@@ -384,7 +392,9 @@ class _$TaskListDao extends TaskListDao {
             latitude: row['latitude'] as String,
             longitude: row['longitude'] as String,
             type: row['type'] as String,
-            appraisalAmount: row['appraisalAmount'] as double?),
+            appraisalAmount: row['appraisalAmount'] as double?,
+            reviewRemark: row['reviewRemark'] as String?,
+            modDate: row['modDate'] as String),
         arguments: [status]);
   }
 

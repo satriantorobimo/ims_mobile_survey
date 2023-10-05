@@ -20,6 +20,8 @@ class TaskList {
   final String longitude;
   final String type;
   final double? appraisalAmount;
+  final String? reviewRemark;
+  final String modDate;
 
   TaskList(
       {required this.code,
@@ -37,7 +39,9 @@ class TaskList {
       required this.latitude,
       required this.longitude,
       required this.type,
-      required this.appraisalAmount});
+      required this.appraisalAmount,
+      required this.reviewRemark,
+      required this.modDate});
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
@@ -57,6 +61,8 @@ class TaskList {
     data['longitude'] = longitude;
     data['type'] = type;
     data['appraisal_amount'] = appraisalAmount;
+    data['review_remark'] = reviewRemark;
+    data['mod_date'] = modDate;
     return data;
   }
 }

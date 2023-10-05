@@ -25,7 +25,6 @@ class FormSurvey4Provider with ChangeNotifier {
 
   void clearHubungan() {
     _listHubunganModel = [];
-    notifyListeners();
   }
 
   void updateHubunganModel(int i, HubunganModel value) {

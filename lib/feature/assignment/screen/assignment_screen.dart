@@ -77,19 +77,19 @@ class _AssignmentScreenState extends State<AssignmentScreen>
         if (i == value.length - 1) {
           setState(() {
             ongoing = ongoingTemp.map((ongoing) => ongoing).toList()
-              ..sort((a, b) =>
-                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+              ..sort((a, b) => DateTime.parse(b.modDate)
+                  .compareTo(DateTime.parse(a.modDate)));
 
             done = doneTemp.map((done) => done).toList()
-              ..sort((a, b) =>
-                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+              ..sort((a, b) => DateTime.parse(b.modDate)
+                  .compareTo(DateTime.parse(a.modDate)));
 
             returned = returnedTemp.map((returned) => returned).toList()
-              ..sort((a, b) =>
-                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+              ..sort((a, b) => DateTime.parse(b.modDate)
+                  .compareTo(DateTime.parse(a.modDate)));
             waiting = waitingTemp.map((waiting) => waiting).toList()
-              ..sort((a, b) =>
-                  DateTime.parse(a.date).compareTo(DateTime.parse(b.date)));
+              ..sort((a, b) => DateTime.parse(b.modDate)
+                  .compareTo(DateTime.parse(a.modDate)));
           });
         }
       }

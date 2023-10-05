@@ -178,7 +178,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 latitude: e.latitude!,
                 longitude: e.longitude!,
                 type: e.type!,
-                appraisalAmount: e.appraisalAmount))
+                appraisalAmount: e.appraisalAmount,
+                reviewRemark: e.reviewRemark,
+                modDate: e.modDate!))
             .toList();
         await taskListDao.insertAllTaskList(taskList);
       } else {
@@ -208,7 +210,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         latitude: e.latitude!,
                         longitude: e.longitude!,
                         type: e.type!,
-                        appraisalAmount: e.appraisalAmount))
+                        appraisalAmount: e.appraisalAmount,
+                        reviewRemark: e.reviewRemark,
+                        modDate: e.modDate!))
                     .toList();
                 await taskListDao.deleteTaskListByStatus('ASSIGN');
                 await taskListDao.deleteTaskListByStatus('RETURN');
@@ -235,7 +239,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     latitude: e.latitude!,
                     longitude: e.longitude!,
                     type: e.type!,
-                    appraisalAmount: e.appraisalAmount))
+                    appraisalAmount: e.appraisalAmount,
+                    reviewRemark: e.reviewRemark,
+                    modDate: e.modDate!))
                 .toList();
             await taskListDao.deleteTaskListByStatus('ASSIGN');
             await taskListDao.deleteTaskListByStatus('RETURN');
