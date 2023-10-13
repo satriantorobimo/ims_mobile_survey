@@ -3,10 +3,10 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:group_radio_button/group_radio_button.dart';
 import 'package:mobile_survey/components/color_comp.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart';
 import 'package:mobile_survey/feature/assignment/provider/assignment_provider.dart';
 import 'package:mobile_survey/feature/assignment/widget/list_view_assignment_widget.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:provider/provider.dart';
 
 class AssignmentScreen extends StatefulWidget {
@@ -27,10 +27,10 @@ class _AssignmentScreenState extends State<AssignmentScreen>
     Tab(text: 'Done'),
   ];
 
-  List<TaskList> ongoing = [];
-  List<TaskList> waiting = [];
-  List<TaskList> returned = [];
-  List<TaskList> done = [];
+  List<Data> ongoing = [];
+  List<Data> waiting = [];
+  List<Data> returned = [];
+  List<Data> done = [];
 
   bool isLoading = true;
 
@@ -53,52 +53,47 @@ class _AssignmentScreenState extends State<AssignmentScreen>
   }
 
   Future<void> _sortingData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-
-    List<TaskList> ongoingTemp = [];
-    List<TaskList> waitingTemp = [];
-    List<TaskList> returnedTemp = [];
-    List<TaskList> doneTemp = [];
-
-    await taskListDao.findAllTaskList().then((value) async {
+    List<Data> ongoingTemp = [];
+    List<Data> waitingTemp = [];
+    List<Data> returnedTemp = [];
+    List<Data> doneTemp = [];
+    await DatabaseHelper.getTask().then((value) {
       for (int i = 0; i < value.length; i++) {
-        if (value[i]!.status == 'ASSIGN') {
-          ongoingTemp.add(value[i]!);
-        } else if (value[i]!.status == 'DONE') {
-          doneTemp.add(value[i]!);
-        } else if (value[i]!.status == 'RETURN') {
-          returnedTemp.add(value[i]!);
-        } else if (value[i]!.status == 'WAITING') {
-          waitingTemp.add(value[i]!);
+        if (value[i].status == 'ASSIGN') {
+          ongoingTemp.add(value[i]);
+        } else if (value[i].status == 'DONE') {
+          doneTemp.add(value[i]);
+        } else if (value[i].status == 'RETURN') {
+          returnedTemp.add(value[i]);
+        } else if (value[i].status == 'WAITING') {
+          waitingTemp.add(value[i]);
         }
 
         if (i == value.length - 1) {
           setState(() {
             ongoing = ongoingTemp.map((ongoing) => ongoing).toList()
-              ..sort((a, b) => DateTime.parse(b.modDate)
-                  .compareTo(DateTime.parse(a.modDate)));
+              ..sort((a, b) => DateTime.parse(b.modDate!)
+                  .compareTo(DateTime.parse(a.modDate!)));
 
             done = doneTemp.map((done) => done).toList()
-              ..sort((a, b) => DateTime.parse(b.modDate)
-                  .compareTo(DateTime.parse(a.modDate)));
+              ..sort((a, b) => DateTime.parse(b.modDate!)
+                  .compareTo(DateTime.parse(a.modDate!)));
 
             returned = returnedTemp.map((returned) => returned).toList()
-              ..sort((a, b) => DateTime.parse(b.modDate)
-                  .compareTo(DateTime.parse(a.modDate)));
+              ..sort((a, b) => DateTime.parse(b.modDate!)
+                  .compareTo(DateTime.parse(a.modDate!)));
             waiting = waitingTemp.map((waiting) => waiting).toList()
-              ..sort((a, b) => DateTime.parse(b.modDate)
-                  .compareTo(DateTime.parse(a.modDate)));
+              ..sort((a, b) => DateTime.parse(b.modDate!)
+                  .compareTo(DateTime.parse(a.modDate!)));
           });
         }
       }
     });
 
     setState(() {
+      log('$ongoing');
       _tabController.index = widget.tabNumber;
       isLoading = false;
-      database.close();
     });
   }
 

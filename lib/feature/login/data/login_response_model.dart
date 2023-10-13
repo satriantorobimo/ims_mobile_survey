@@ -77,4 +77,31 @@ class Datalist {
     data['device_id'] = deviceId;
     return data;
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'ucode': ucode,
+      'name': name,
+      'system_date': systemDate,
+      'branch_code': branchCode,
+      'branch_name': branchName,
+      'idpp': idpp,
+      'company_code': companyCode,
+      'company_name': companyName,
+      'device_id': deviceId
+    };
+  }
+
+  factory Datalist.fromMap(Map<String, dynamic> map) {
+    return Datalist(
+        ucode: map['ucode'],
+        name: map['name'],
+        systemDate: map['system_date'],
+        branchCode: map['branch_code'],
+        branchName: map['branch_name'],
+        idpp: map['idpp'],
+        companyCode: map['company_code'],
+        companyName: map['company_name'],
+        deviceId: map['device_id']);
+  }
 }

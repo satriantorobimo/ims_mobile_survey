@@ -81,4 +81,27 @@ class Data {
     data['value'] = value;
     return data;
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'task_code': taskCode,
+      'area_phone_no': areaPhoneNo,
+      'phone_no': phoneNo,
+      'remark': remark,
+      'name': name,
+      'value': value
+    };
+  }
+
+  factory Data.fromMap(Map<String, dynamic> map) {
+    return Data(
+        id: map['id'],
+        taskCode: map['task_code'],
+        areaPhoneNo: map['area_phone_no'],
+        phoneNo: map['phone_no'],
+        remark: map['remark'],
+        name: map['name'],
+        value: map['value']);
+  }
 }

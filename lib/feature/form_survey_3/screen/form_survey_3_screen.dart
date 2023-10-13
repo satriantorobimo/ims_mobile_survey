@@ -9,7 +9,7 @@ import 'package:mobile_survey/components/loading_grid_comp.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/args_preview_attachment_model.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_response_model.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import '../widget/button_next_3_widget.dart';
@@ -259,13 +259,9 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
   }
 
   _getData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final attachmentListDao = database.attachmentListDao;
-
-    await attachmentListDao
-        .findAttachmentListByCode(widget.argsSubmitDataModel.taskList.code)
-        .then((value) async {
+    await DatabaseHelper.getAttachment(
+            widget.argsSubmitDataModel.taskList.code!)
+        .then((value) {
       if (value.isNotEmpty) {
         for (int i = 0; i < value.length; i++) {
           setState(() {
@@ -276,15 +272,15 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                 filePath: value[i].filePath,
                 id: value[i].id,
                 taskCode: value[i].taskCode,
-                type: value[i].type));
+                type: value[i].type,
+                isRequired: value[i].isRequired));
           });
         }
-      } else {}
+      }
     });
 
     setState(() {
       isLoading = false;
-      database.close();
     });
   }
 
@@ -305,7 +301,7 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.argsSubmitDataModel.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form Survey ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
@@ -368,6 +364,9 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                               itemBuilder: (context, index) {
                                 final ext =
                                     path.extension(data[index].fileName!);
+                                final fp =
+                                    path.extension(data[index].filePath!);
+                                log(fp);
                                 return Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
@@ -400,8 +399,12 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                                     .filePath!));
                                                   }
                                                 } else {
-                                                  if (data[index].newData !=
-                                                      null) {
+                                                  if (path.extension(data[index]
+                                                              .filePath!) ==
+                                                          '.jpg' ||
+                                                      path.extension(data[index]
+                                                              .filePath!) ==
+                                                          '.png') {
                                                     Navigator.pushNamed(
                                                         context,
                                                         StringRouterUtil
@@ -504,15 +507,31 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              data[index]
-                                                  .documentName!
-                                                  .toLowerCase()
-                                                  .capitalizeOnlyFirstLater(),
-                                              style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: Color(0xFF2D2A26),
-                                                  fontWeight: FontWeight.w600),
+                                            Text.rich(
+                                              TextSpan(
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: Color(0xFF2D2A26),
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                                children: <TextSpan>[
+                                                  TextSpan(
+                                                      text: data[index]
+                                                          .documentName!
+                                                          .toLowerCase()
+                                                          .capitalizeOnlyFirstLater()),
+                                                  TextSpan(
+                                                      text: data[index]
+                                                                  .isRequired! ==
+                                                              '1'
+                                                          ? ' *'
+                                                          : ' ',
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        color: primaryColor,
+                                                      )),
+                                                ],
+                                              ),
                                             ),
                                             Text(
                                               'Ambil ${data[index].documentName!.toLowerCase().capitalizeOnlyFirstLater()}',

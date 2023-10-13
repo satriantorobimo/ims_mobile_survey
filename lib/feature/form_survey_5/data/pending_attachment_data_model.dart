@@ -1,8 +1,4 @@
-import 'package:floor/floor.dart';
-
-@entity
 class PendingAttachment {
-  @PrimaryKey(autoGenerate: true)
   int? ids;
 
   String? pModule;
@@ -12,6 +8,7 @@ class PendingAttachment {
   int? pFilePaths;
   String? pFileName;
   String? pBase64;
+  String? imagePath;
 
   PendingAttachment(
       {this.ids,
@@ -21,7 +18,8 @@ class PendingAttachment {
       required this.pId,
       required this.pFilePaths,
       required this.pFileName,
-      required this.pBase64});
+      required this.pBase64,
+      required this.imagePath});
 
   PendingAttachment copyWith(
       {int? ids,
@@ -31,16 +29,17 @@ class PendingAttachment {
       int? pId,
       int? pFilePaths,
       String? pFileName,
-      String? pBase64}) {
+      String? pBase64,
+      String? imagePath}) {
     return PendingAttachment(
-      ids: ids,
-      pBase64: pBase64 ?? this.pBase64,
-      pChild: pChild ?? this.pChild,
-      pFileName: pFileName ?? this.pFileName,
-      pFilePaths: pFilePaths ?? this.pFilePaths,
-      pHeader: pHeader ?? this.pHeader,
-      pId: pId ?? this.pId,
-      pModule: pModule ?? this.pModule,
-    );
+        ids: ids,
+        pBase64: pBase64 ?? this.pBase64,
+        pChild: pChild ?? this.pChild,
+        pFileName: pFileName ?? this.pFileName,
+        pFilePaths: pFilePaths ?? this.pFilePaths,
+        pHeader: pHeader ?? this.pHeader,
+        pId: pId ?? this.pId,
+        pModule: pModule ?? this.pModule,
+        imagePath: imagePath ?? this.imagePath);
   }
 }

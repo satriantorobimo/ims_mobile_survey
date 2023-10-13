@@ -6,6 +6,7 @@ class UploadAttachmentModel {
   int? pFilePaths;
   String? pFileName;
   String? pBase64;
+  String? imagePath;
 
   UploadAttachmentModel(
       {this.pModule,
@@ -14,7 +15,8 @@ class UploadAttachmentModel {
       this.pId,
       this.pFilePaths,
       this.pFileName,
-      this.pBase64});
+      this.pBase64,
+      this.imagePath});
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};

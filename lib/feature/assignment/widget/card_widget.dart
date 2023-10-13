@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart';
 
 class CardWidget extends StatelessWidget {
   const CardWidget(
@@ -14,7 +14,7 @@ class CardWidget extends StatelessWidget {
   final Color colorBg;
   final String name;
   final String label;
-  final TaskList taskList;
+  final Data taskList;
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class CardWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            taskList.type,
+            taskList.type!,
             style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
@@ -51,7 +51,7 @@ class CardWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                taskList.mobileNo,
+                taskList.mobileNo!,
                 style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

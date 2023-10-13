@@ -1,8 +1,4 @@
-import 'package:floor/floor.dart';
-
-@entity
 class PendingReference {
-  @PrimaryKey(autoGenerate: true)
   int? ids;
 
   String taskCode;

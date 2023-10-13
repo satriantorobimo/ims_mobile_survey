@@ -1,6 +1,5 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_1/screen/form_survey_1_screen.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart';
@@ -16,7 +15,8 @@ import 'package:mobile_survey/feature/login/screen/login_screen.dart';
 import 'package:mobile_survey/feature/relogin/screen/relogin_screen.dart';
 import 'package:mobile_survey/feature/splash/screen/splash_screen.dart';
 import 'package:mobile_survey/feature/tab/screen/tab_bar.dart';
-
+import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart'
+    as task;
 import 'package:mobile_survey/utility/string_router_util.dart';
 
 import 'feature/form_survey_2/screen/form_survey_2_screen.dart';
@@ -54,7 +54,7 @@ class Routers {
                 FadeTransition(opacity: a, child: c));
 
       case StringRouterUtil.form1ScreenRoute:
-        final TaskList taskList = settings.arguments as TaskList;
+        final task.Data taskList = settings.arguments as task.Data;
         return PageRouteBuilder<dynamic>(
             pageBuilder: (_, __, ___) => FormSurvey1Screen(taskList: taskList),
             settings: RouteSettings(name: settings.name),
@@ -62,7 +62,7 @@ class Routers {
                 FadeTransition(opacity: a, child: c));
 
       case StringRouterUtil.form2ScreenRoute:
-        final TaskList taskList = settings.arguments as TaskList;
+        final task.Data taskList = settings.arguments as task.Data;
         return PageRouteBuilder<dynamic>(
             pageBuilder: (_, __, ___) => FormSurvey2Screen(taskList: taskList),
             settings: RouteSettings(name: settings.name),

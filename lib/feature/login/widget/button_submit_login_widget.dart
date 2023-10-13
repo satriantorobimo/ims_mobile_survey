@@ -5,9 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_survey/feature/login/bloc/login_bloc/bloc.dart';
 import 'package:mobile_survey/feature/login/data/login_request_model.dart';
 import 'package:mobile_survey/feature/login/data/login_response_model.dart';
-import 'package:mobile_survey/feature/login/data/user_data_model.dart';
 import 'package:mobile_survey/feature/login/domain/repo/login_repo.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/firebase_notification_service.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/shared_pref_util.dart';
@@ -380,30 +379,7 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
   }
 
   Future<void> _processDb(Datalist datalist) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final personDao = database.userDao;
-    final user = User(
-        branchCode: datalist.branchCode ?? '',
-        branchName: datalist.branchName ?? '',
-        companyCode: datalist.companyCode ?? '',
-        companyName: datalist.companyName ?? '',
-        deviceId: datalist.deviceId ?? '',
-        id: 0,
-        idpp: datalist.idpp ?? '',
-        name: datalist.name ?? '',
-        systemDate: datalist.systemDate ?? '',
-        ucode: datalist.ucode ?? '');
-    await personDao.findUserById(0).then((value) async {
-      if (value == null) {
-        await personDao.insertUser(user);
-      } else {
-        await personDao.deleteUserById(0);
-        await personDao.insertUser(user);
-      }
-    });
-
-    database.close();
+    await DatabaseHelper.insertUser(datalist);
   }
 
   Future<void> subsNotif(String username) async {
@@ -470,8 +446,8 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
         } else {
           GeneralUtil.getDeviceId().then((value) {
             loginBloc.add(LoginAttempt(
-                loginRequestModel: LoginRequestModel(
-                    loginProdiver.username, loginProdiver.password, value)));
+                loginRequestModel: LoginRequestModel(loginProdiver.username,
+                    loginProdiver.password, 'TP1A.220624.014')));
           });
         }
       },

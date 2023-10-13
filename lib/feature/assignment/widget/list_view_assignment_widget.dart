@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart';
 import 'package:mobile_survey/feature/assignment/widget/card_widget.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +10,7 @@ import '../provider/assignment_provider.dart';
 
 class ListViewAssignmentWidget extends StatefulWidget {
   const ListViewAssignmentWidget({super.key, required this.taskList});
-  final List<TaskList> taskList;
+  final List<Data> taskList;
 
   @override
   State<ListViewAssignmentWidget> createState() =>
@@ -18,7 +18,7 @@ class ListViewAssignmentWidget extends StatefulWidget {
 }
 
 class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
-  void _showDetail(TaskList taskList) {
+  void _showDetail(Data taskList) {
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -72,14 +72,14 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            taskList.clientName,
+                            taskList.clientName!,
                             style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF575551)),
                           ),
                           Text(
-                            taskList.type,
+                            taskList.type!,
                             style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -107,7 +107,7 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.5,
                       child: Text(
-                        taskList.agreementNo,
+                        taskList.agreementNo!,
                         style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -132,12 +132,12 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        _showActionHubungi(taskList.mobileNo);
+                        _showActionHubungi(taskList.mobileNo!);
                       },
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.5,
                         child: Text(
-                          taskList.mobileNo,
+                          taskList.mobileNo!,
                           style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -164,7 +164,7 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                     SizedBox(
                       width: MediaQuery.of(context).size.width * 0.5,
                       child: Text(
-                        taskList.location,
+                        taskList.location!,
                         style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -335,7 +335,7 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
   Widget build(BuildContext context) {
     var assignmentProvider =
         Provider.of<AssignmentProvider>(context, listen: true);
-    List<TaskList> task = [];
+    List<Data> task = [];
 
     if (assignmentProvider.filter == 'Survey') {
       task.addAll(widget.taskList);
@@ -380,31 +380,31 @@ class _ListViewAssignmentWidgetState extends State<ListViewAssignmentWidget> {
                             ? CardWidget(
                                 color: secondaryColor,
                                 colorBg: secondaryColor.withOpacity(0.4),
-                                label: task[index].status,
-                                name: task[index].clientName,
+                                label: task[index].status!,
+                                name: task[index].clientName!,
                                 taskList: task[index],
                               )
                             : assignmentProvider.index == 1
                                 ? CardWidget(
                                     color: primaryColor,
                                     colorBg: const Color(0xFFFECCCC),
-                                    label: task[index].status,
-                                    name: task[index].clientName,
+                                    label: task[index].status!,
+                                    name: task[index].clientName!,
                                     taskList: task[index],
                                   )
                                 : assignmentProvider.index == 2
                                     ? CardWidget(
                                         color: thirdColor,
                                         colorBg: thirdColor.withOpacity(0.4),
-                                        label: task[index].status,
-                                        name: task[index].clientName,
+                                        label: task[index].status!,
+                                        name: task[index].clientName!,
                                         taskList: task[index],
                                       )
                                     : CardWidget(
                                         color: fifthColor,
                                         colorBg: fifthColor.withOpacity(0.4),
-                                        label: task[index].status,
-                                        name: task[index].clientName,
+                                        label: task[index].status!,
+                                        name: task[index].clientName!,
                                         taskList: task[index],
                                       ),
                       );

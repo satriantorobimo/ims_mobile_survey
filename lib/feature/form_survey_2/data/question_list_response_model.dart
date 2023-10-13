@@ -94,12 +94,59 @@ class Data {
   }
 }
 
+class DataWithoutAnswer {
+  String? code;
+  String? taskCode;
+  String? questionCode;
+  String? questionDesc;
+  String? type;
+  String? answer;
+  int? answerChoiceId;
+
+  DataWithoutAnswer(
+      {this.code,
+      this.taskCode,
+      this.questionCode,
+      this.questionDesc,
+      this.type,
+      this.answer,
+      this.answerChoiceId});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'code': code,
+      'task_code': taskCode,
+      'question_code': questionCode,
+      'question_desc': questionDesc,
+      'type': type,
+      'answer': answer,
+      'answer_choice_id': answerChoiceId
+    };
+  }
+
+  factory DataWithoutAnswer.fromMap(Map<String, dynamic> map) {
+    return DataWithoutAnswer(
+        code: map['code'],
+        taskCode: map['task_code'],
+        questionCode: map['question_code'],
+        questionDesc: map['question_desc'],
+        type: map['type'],
+        answer: map['answer'],
+        answerChoiceId: map['answer_choice_id']);
+  }
+}
+
 class AnswerChoice {
   int? id;
   String? questionCode;
   String? questionOptionDesc;
+  String? taskQuestionCode;
 
-  AnswerChoice({this.id, this.questionCode, this.questionOptionDesc});
+  AnswerChoice(
+      {this.id,
+      this.questionCode,
+      this.questionOptionDesc,
+      this.taskQuestionCode});
 
   AnswerChoice.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -113,5 +160,22 @@ class AnswerChoice {
     data['question_code'] = questionCode;
     data['question_option_desc'] = questionOptionDesc;
     return data;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'question_code': questionCode,
+      'question_option_desc': questionOptionDesc,
+      'task_question_code': taskQuestionCode
+    };
+  }
+
+  factory AnswerChoice.fromMap(Map<String, dynamic> map) {
+    return AnswerChoice(
+        id: map['id'],
+        questionCode: map['question_code'],
+        questionOptionDesc: map['question_option_desc'],
+        taskQuestionCode: map['task_question_code']);
   }
 }

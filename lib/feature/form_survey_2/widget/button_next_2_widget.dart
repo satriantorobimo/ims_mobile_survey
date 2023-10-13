@@ -1,13 +1,10 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/answer_result_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
-import 'package:mobile_survey/feature/form_survey_3/data/upload_attachment_model.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 
 import '../../../components/color_comp.dart';
+import '../../assignment/data/task_list_response_model.dart';
 
 class ButtonNext2Widget extends StatefulWidget {
   const ButtonNext2Widget(
@@ -17,7 +14,7 @@ class ButtonNext2Widget extends StatefulWidget {
       required this.lengthQuestion});
   final int lengthQuestion;
   final List<AnswerResultsModel> results;
-  final TaskList taskList;
+  final Data taskList;
 
   @override
   State<ButtonNext2Widget> createState() => _ButtonNext2WidgetState();

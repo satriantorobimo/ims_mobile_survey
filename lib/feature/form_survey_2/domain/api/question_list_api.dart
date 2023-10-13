@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:mobile_survey/feature/form_survey_2/data/answer_result_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart';
 import 'package:mobile_survey/feature/form_survey_5/data/success_update_response_model.dart';
@@ -28,9 +29,12 @@ class QuestionListApi {
     final json = jsonEncode(a);
 
     try {
+      Stopwatch stopwatch = Stopwatch()..start();
       final res = await http.post(Uri.parse(urlUtil.getUrlQuestion()),
           body: json, headers: header);
       if (res.statusCode == 200) {
+        log('Question List executed in ${stopwatch.elapsed}');
+        stopwatch.stop();
         questionListResponseModel =
             QuestionListResponseModel.fromJson(jsonDecode(res.body));
         return questionListResponseModel;

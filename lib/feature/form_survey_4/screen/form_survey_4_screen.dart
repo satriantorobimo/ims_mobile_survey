@@ -1,10 +1,6 @@
-import 'dart:developer';
-
-import 'package:dropdown_button2/custom_dropdown_button2.dart';
 import 'package:flutter/material.dart';
-import 'package:group_radio_button/group_radio_button.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import 'package:provider/provider.dart';
 
@@ -1034,20 +1030,16 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
     var formSurvey4Provider =
         Provider.of<FormSurvey4Provider>(context, listen: false);
     formSurvey4Provider.clearHubungan();
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final referenceListDao = database.referenceListDao;
 
-    await referenceListDao
-        .findRefrenceByCode(widget.argsSubmitDataModel.taskList.code)
+    await DatabaseHelper.getReference(widget.argsSubmitDataModel.taskList.code!)
         .then((value) {
       if (value.isNotEmpty) {
         for (int i = 0; i < value.length; i++) {
           formSurvey4Provider.setHubunganModel(HubunganModel(
               taskCode: value[i].taskCode,
               name: value[i].name,
-              phoneArea: value[i].phoneArea,
-              phoneNumber: value[i].phoneNumber,
+              phoneArea: value[i].areaPhoneNo,
+              phoneNumber: value[i].phoneNo,
               remark: value[i].remark,
               value: value[i].value));
         }
@@ -1056,7 +1048,6 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
 
     setState(() {
       isLoading = false;
-      database.close();
     });
   }
 
@@ -1072,7 +1063,7 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.argsSubmitDataModel.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form Survey ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
@@ -1250,21 +1241,30 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                                             FontWeight.w400),
                                                   ),
                                                 ),
-                                                InkWell(
-                                                  onTap: () {
-                                                    _warningDelete(
-                                                        index,
-                                                        formSurvey4Provider
-                                                            .listHubunganModel[
-                                                                index]
-                                                            .name!);
-                                                  },
-                                                  child: const Icon(
-                                                    Icons.delete,
-                                                    color: Colors.red,
-                                                    size: 22,
-                                                  ),
-                                                ),
+                                                widget.argsSubmitDataModel.taskList
+                                                                .status ==
+                                                            'WAITING' ||
+                                                        widget
+                                                                .argsSubmitDataModel
+                                                                .taskList
+                                                                .status ==
+                                                            'DONE'
+                                                    ? Container()
+                                                    : InkWell(
+                                                        onTap: () {
+                                                          _warningDelete(
+                                                              index,
+                                                              formSurvey4Provider
+                                                                  .listHubunganModel[
+                                                                      index]
+                                                                  .name!);
+                                                        },
+                                                        child: const Icon(
+                                                          Icons.delete,
+                                                          color: Colors.red,
+                                                          size: 22,
+                                                        ),
+                                                      ),
                                               ],
                                             ),
                                           ],

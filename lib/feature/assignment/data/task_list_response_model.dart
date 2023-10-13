@@ -125,4 +125,50 @@ class Data {
     data['mod_date'] = modDate;
     return data;
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'code': code,
+      'date': date,
+      'status': status,
+      'remark': remark,
+      'result': result,
+      'pic_code': picCode,
+      'pic_name': picName,
+      'branch_name': branchName,
+      'agreement_no': agreementNo,
+      'client_name': clientName,
+      'mobile_no': mobileNo,
+      'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
+      'type': type,
+      'appraisal_amount': appraisalAmount,
+      'review_remark': reviewRemark,
+      'mod_date': modDate,
+    };
+  }
+
+  factory Data.fromMap(Map<String, dynamic> map) {
+    return Data(
+      code: map['code'],
+      date: map['date'],
+      status: map['status'],
+      remark: map['remark'],
+      result: map['result'],
+      picCode: map['pic_code'],
+      picName: map['pic_name'],
+      branchName: map['branch_name'],
+      agreementNo: map['agreement_no'],
+      clientName: map['client_name'],
+      mobileNo: map['mobile_no'],
+      location: map['location'],
+      latitude: map['latitude'],
+      longitude: map['longitude'],
+      type: map['type'],
+      appraisalAmount: map['appraisal_amount'],
+      reviewRemark: map['review_remark'],
+      modDate: map['mod_date'],
+    );
+  }
 }

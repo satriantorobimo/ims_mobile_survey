@@ -1,10 +1,12 @@
+import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:mobile_survey/components/color_comp.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/domain/repo/task_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/answer_result_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/domain/repo/question_list_repo.dart';
@@ -17,9 +19,10 @@ import 'package:mobile_survey/feature/form_survey_5/data/pending_attachment_data
 import 'package:mobile_survey/feature/form_survey_5/data/pending_reference_data_mode.dart';
 import 'package:mobile_survey/feature/form_survey_5/data/pending_summary_data_model.dart';
 import 'package:mobile_survey/feature/pending/widget/button_submit_widget.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/network_util.dart';
 import '../../assignment/bloc/update_task_bloc/bloc.dart';
+import '../../assignment/data/task_list_response_model.dart';
 import '../../form_survey_2/bloc/update_question_bloc/bloc.dart';
 import '../../form_survey_3/bloc/upload_attachment_bloc/bloc.dart';
 import '../../form_survey_4/bloc/reference_bloc/bloc.dart';
@@ -37,7 +40,7 @@ class _PendingScreenState extends State<PendingScreen>
   final InternetConnectionChecker internetConnectionChecker =
       InternetConnectionChecker();
   AnimationController? animationController;
-  List<TaskList> pending = [];
+  List<Data> pending = [];
   List<PendingAnswer> answer = [];
   List<PendingAttachment> attachment = [];
   List<PendingReference> reference = [];
@@ -60,116 +63,77 @@ class _PendingScreenState extends State<PendingScreen>
   UpdateTaskBloc updateTaskBloc = UpdateTaskBloc(taskListRepo: TaskListRepo());
 
   Future<void> _getData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-    setState(() {
-      pending = [];
-    });
-    await taskListDao.findTaskListByStatus('PENDING').then((value) async {
-      for (int i = 0; i < value.length; i++) {
+    await DatabaseHelper.getTaskPending().then((value) {
+      if (value.isNotEmpty) {
         setState(() {
-          pending.add(value[i]!);
+          pending = [];
         });
-      }
-    });
-
-    await taskListDao.findAllTaskList().then((value) async {
-      for (int i = 0; i < value.length; i++) {
-        // setState(() {
-        //   pending.add(value[i]!);
-        // });
+        for (int i = 0; i < value.length; i++) {
+          setState(() {
+            pending.add(value[i]);
+          });
+        }
       }
     });
 
     setState(() {
       isLoading = false;
-      database.close();
     });
   }
 
   Future<void> getAnswer(String taskCode) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingAnswerDao;
-    try {
-      await taskListDao.findPendingAnswerByTaskCode(taskCode).then((value) {
-        setState(() {
-          answer = [];
-          answer.addAll(value);
-        });
-      });
-    } catch (e) {
-      log(e.toString());
-    }
-
-    database.close();
+    await DatabaseHelper.getQuestion(taskCode).then((value) async {
+      for (var element in value) {
+        answer.add(PendingAnswer(
+            taskCode: taskCode,
+            pCode: element.code!,
+            pAnswer: element.answer,
+            pAnswerChoiceId: element.answerChoiceId));
+      }
+    });
   }
 
   Future<void> getAttachment(String taskCode) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingAttachmentDao;
-    try {
-      await taskListDao.findPendingAttachmentByCode(taskCode).then((value) {
-        setState(() {
-          attachment = [];
-          attachment.addAll(value);
-        });
-      });
-    } catch (e) {
-      log(e.toString());
-    }
-
-    database.close();
+    await DatabaseHelper.getAttachment(taskCode).then((value) async {
+      for (var element in value) {
+        File imagefile = File(element.filePath!);
+        Uint8List imagebytes = await imagefile.readAsBytes();
+        String base64string = base64.encode(imagebytes);
+        attachment.add(PendingAttachment(
+            pModule: "MOB_SVY",
+            pHeader: "TASK_DOCUMENT",
+            pChild: taskCode,
+            pId: element.id,
+            pFilePaths: element.id,
+            pFileName: element.fileName,
+            pBase64: base64string,
+            imagePath: element.filePath));
+      }
+    });
   }
 
   Future<void> getReference(String taskCode) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingReferenceDao;
-    try {
-      await taskListDao.findPendingRefrenceByCode(taskCode).then((value) {
-        setState(() {
-          reference = [];
-          reference.addAll(value);
-        });
-      });
-    } catch (e) {
-      log(e.toString());
-    }
-
-    database.close();
+    await DatabaseHelper.getReference(taskCode).then((value) async {
+      for (var element in value) {
+        reference.add(PendingReference(
+            taskCode: taskCode,
+            name: element.name!,
+            phoneArea: element.areaPhoneNo!,
+            phoneNumber: element.phoneNo!,
+            remark: element.remark!,
+            value: element.value!));
+      }
+    });
   }
 
-  Future<void> getSummary(String taskCode) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingSummaryDao;
-    try {
-      await taskListDao.findPendingSummaryById(taskCode).then((value) {
-        setState(() {
-          pendingSummary = value!;
-        });
-      });
-    } catch (e) {
-      log(e.toString());
-    }
-
-    database.close();
-  }
-
-  Future<void> processDbUpdateTaskDone(String taskCode) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-    try {
-      await taskListDao.updateTaskData('WAITING', pendingSummary.remark,
-          pendingSummary.notes!, pendingSummary.value!, taskCode);
-    } catch (e) {
-      log(e.toString());
-    }
-    database.close();
+  Future<void> getSummary(int index) async {
+    setState(() {
+      pendingSummary = PendingSummary(
+          taskCode: pending[index].code!,
+          remark: pending[index].remark!,
+          notes: pending[index].result!,
+          value: pending[index].appraisalAmount!);
+    });
   }
 
   void _submit() {
@@ -303,10 +267,10 @@ class _PendingScreenState extends State<PendingScreen>
     questionCount = 0;
     attachmentCount = 0;
     refCount = 0;
-    await getAnswer(pending[taskCount].code);
-    await getAttachment(pending[taskCount].code);
-    await getReference(pending[taskCount].code);
-    await getSummary(pending[taskCount].code);
+    await getAnswer(pending[taskCount].code!);
+    await getAttachment(pending[taskCount].code!);
+    await getReference(pending[taskCount].code!);
+    await getSummary(taskCount);
 
     updateQuestionBloc.add(UpdateQuestionAttempt(AnswerResultsModel(
         pAnswer: answer[questionCount].pAnswer == ''
@@ -450,12 +414,12 @@ class _PendingScreenState extends State<PendingScreen>
                                           value: reference[refCount].value)));
                                 } else {
                                   updateTaskBloc.add(UpdateTaskAttempt(
-                                      pending[taskCount].code,
-                                      pending[taskCount].type,
+                                      pending[taskCount].code!,
+                                      pending[taskCount].type!,
                                       pendingSummary.remark,
                                       pendingSummary.value ?? 0,
                                       pendingSummary.notes!,
-                                      pending[taskCount].date));
+                                      pending[taskCount].date!));
                                 }
                               }
                             }
@@ -502,12 +466,12 @@ class _PendingScreenState extends State<PendingScreen>
                                 if (pending[taskCount].type == 'SURVEY') {
                                   log('Start update task');
                                   updateTaskBloc.add(UpdateTaskAttempt(
-                                      pending[taskCount].code,
-                                      pending[taskCount].type,
+                                      pending[taskCount].code!,
+                                      pending[taskCount].type!,
                                       pendingSummary.remark,
                                       pendingSummary.value ?? 0,
                                       pendingSummary.notes!,
-                                      pending[taskCount].date));
+                                      pending[taskCount].date!));
                                 } else {
                                   log('Start insert ref $refCount');
                                   if (reference.isNotEmpty) {
@@ -524,12 +488,12 @@ class _PendingScreenState extends State<PendingScreen>
                                             value: reference[refCount].value)));
                                   } else {
                                     updateTaskBloc.add(UpdateTaskAttempt(
-                                        pending[taskCount].code,
-                                        pending[taskCount].type,
+                                        pending[taskCount].code!,
+                                        pending[taskCount].type!,
                                         pendingSummary.remark,
                                         pendingSummary.value ?? 0,
                                         pendingSummary.notes!,
-                                        pending[taskCount].date));
+                                        pending[taskCount].date!));
                                   }
                                 }
                               }
@@ -567,12 +531,12 @@ class _PendingScreenState extends State<PendingScreen>
                               } else {
                                 log('Start update task');
                                 updateTaskBloc.add(UpdateTaskAttempt(
-                                    pending[taskCount].code,
-                                    pending[taskCount].type,
+                                    pending[taskCount].code!,
+                                    pending[taskCount].type!,
                                     pendingSummary.remark,
                                     pendingSummary.value ?? 0,
                                     pendingSummary.notes!,
-                                    pending[taskCount].date));
+                                    pending[taskCount].date!));
                               }
                             }
                             if (state is ReferenceError) {
@@ -592,7 +556,9 @@ class _PendingScreenState extends State<PendingScreen>
                           listener: (_, UpdateTaskState state) async {
                             if (state is UpdateTaskLoading) {}
                             if (state is UpdateTaskLoaded) {
-                              processDbUpdateTaskDone(pending[taskCount].code);
+                              await DatabaseHelper.updateTaskDone(
+                                  status: 'WAITING',
+                                  taskCode: pending[taskCount].code!);
                               taskCount++;
                               if (taskCount < pending.length) {
                                 log('Masih ada task insert');

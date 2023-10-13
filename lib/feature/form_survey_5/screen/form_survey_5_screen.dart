@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:mobile_survey/feature/assignment/bloc/update_task_bloc/bloc.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/domain/repo/task_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_2/bloc/update_question_bloc/bloc.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
@@ -16,11 +15,7 @@ import 'package:mobile_survey/feature/form_survey_3/domain/repo/attachment_list_
 import 'package:mobile_survey/feature/form_survey_4/bloc/reference_bloc/bloc.dart';
 import 'package:mobile_survey/feature/form_survey_4/domain/repo/reference_repo.dart';
 import 'package:mobile_survey/feature/form_survey_4/provider/form_survey_4_provider.dart';
-import 'package:mobile_survey/feature/form_survey_5/data/pending_answer_data_model.dart';
-import 'package:mobile_survey/feature/form_survey_5/data/pending_attachment_data_model.dart';
-import 'package:mobile_survey/feature/form_survey_5/data/pending_reference_data_mode.dart';
-import 'package:mobile_survey/feature/form_survey_5/data/pending_summary_data_model.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/network_util.dart';
 import 'package:provider/provider.dart';
@@ -166,191 +161,19 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
     );
   }
 
-  Future<void> processDbUpdateTaskDone() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-    final questionDao = database.questionListDao;
-    try {
-      final taskList = TaskList(
-          code: widget.argsSubmitDataModel.taskList.code,
-          date: widget.argsSubmitDataModel.taskList.date,
-          status: 'WAITING',
-          remark: _notesCtrl.text,
-          result: _sesuaiCtrl.text,
-          picCode: widget.argsSubmitDataModel.taskList.picCode,
-          picName: widget.argsSubmitDataModel.taskList.picName,
-          branchName: widget.argsSubmitDataModel.taskList.branchName,
-          agreementNo: widget.argsSubmitDataModel.taskList.agreementNo,
-          clientName: widget.argsSubmitDataModel.taskList.clientName,
-          mobileNo: widget.argsSubmitDataModel.taskList.mobileNo,
-          location: widget.argsSubmitDataModel.taskList.location,
-          latitude: widget.argsSubmitDataModel.taskList.latitude,
-          longitude: widget.argsSubmitDataModel.taskList.longitude,
-          type: widget.argsSubmitDataModel.taskList.type,
-          appraisalAmount:
-              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text),
-          reviewRemark: widget.argsSubmitDataModel.taskList.reviewRemark,
-          modDate: widget.argsSubmitDataModel.taskList.modDate);
-      await taskListDao.updateTask(taskList);
-      for (int i = 0;
-          i < widget.argsSubmitDataModel.answerResults.length;
-          i++) {
-        await questionDao.updateQuestionListById(
-            widget.argsSubmitDataModel.answerResults[i].pCode!,
-            widget.argsSubmitDataModel.answerResults[i].pAnswer ?? '',
-            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId ?? 0);
-      }
-    } catch (e) {
-      log(e.toString());
-    }
-    database.close();
-  }
-
   Future<void> processDbUpdateTaskPending() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-    try {
-      final taskList = TaskList(
-          code: widget.argsSubmitDataModel.taskList.code,
-          date: widget.argsSubmitDataModel.taskList.date,
-          status: 'PENDING',
-          remark: _notesCtrl.text,
-          result: _sesuaiCtrl.text,
-          picCode: widget.argsSubmitDataModel.taskList.picCode,
-          picName: widget.argsSubmitDataModel.taskList.picName,
-          branchName: widget.argsSubmitDataModel.taskList.branchName,
-          agreementNo: widget.argsSubmitDataModel.taskList.agreementNo,
-          clientName: widget.argsSubmitDataModel.taskList.clientName,
-          mobileNo: widget.argsSubmitDataModel.taskList.mobileNo,
-          location: widget.argsSubmitDataModel.taskList.location,
-          latitude: widget.argsSubmitDataModel.taskList.latitude,
-          longitude: widget.argsSubmitDataModel.taskList.longitude,
-          type: widget.argsSubmitDataModel.taskList.type,
-          appraisalAmount:
-              _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text),
-          reviewRemark: widget.argsSubmitDataModel.taskList.reviewRemark,
-          modDate: widget.argsSubmitDataModel.taskList.modDate);
-      await taskListDao.updateTask(taskList);
-      await taskListDao
-          .findTaskListById(widget.argsSubmitDataModel.taskList.code)
-          .then((value) {
-        log('Task List : ${value!.code}');
-        log('Task List : ${value.status}');
-      });
-    } catch (e) {
-      log(e.toString());
-    }
-    database.close();
-  }
-
-  Future<void> processDbAnswer() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingAnswerDao;
-    final questionDao = database.questionListDao;
-    try {
-      for (int i = 0;
-          i < widget.argsSubmitDataModel.answerResults.length;
-          i++) {
-        final pendingAnswer = PendingAnswer(
-            taskCode: widget.argsSubmitDataModel.taskList.code,
-            pCode: widget.argsSubmitDataModel.answerResults[i].pCode!,
-            pAnswer: widget.argsSubmitDataModel.answerResults[i].pAnswer,
-            pAnswerChoiceId:
-                widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId);
-        await taskListDao.insertPendingAnswer(pendingAnswer);
-        await questionDao.updateQuestionListById(
-            widget.argsSubmitDataModel.answerResults[i].pCode!,
-            widget.argsSubmitDataModel.answerResults[i].pAnswer ?? '',
-            widget.argsSubmitDataModel.answerResults[i].pAnswerChoiceId ?? 0);
-        await taskListDao
-            .findPendingAnswerById(pendingAnswer.pCode)
-            .then((value) {
-          log('Answer Pending : ${value!.pCode}');
-          log('Answer Pending : ${value.pAnswer}');
-          log('Answer Pending : ${value.pAnswerChoiceId}');
-        });
-      }
-    } catch (e) {
-      log(e.toString());
-    }
-    database.close();
-  }
-
-  Future<void> processDbAttachment() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingAttachmentDao;
-    try {
-      for (int i = 0;
-          i < widget.argsSubmitDataModel.uploadAttachment.length;
-          i++) {
-        final pendingAttachment = PendingAttachment(
-            pModule: widget.argsSubmitDataModel.uploadAttachment[i].pModule,
-            pHeader: widget.argsSubmitDataModel.uploadAttachment[i].pHeader,
-            pChild: widget.argsSubmitDataModel.uploadAttachment[i].pChild,
-            pId: widget.argsSubmitDataModel.uploadAttachment[i].pId,
-            pFilePaths:
-                widget.argsSubmitDataModel.uploadAttachment[i].pFilePaths,
-            pFileName: widget.argsSubmitDataModel.uploadAttachment[i].pFileName,
-            pBase64: widget.argsSubmitDataModel.uploadAttachment[i].pBase64);
-        await taskListDao.insertPendingAttachment(pendingAttachment);
-        await taskListDao
-            .findPendingAttachmentByCode(pendingAttachment.pChild!)
-            .then((value) {
-          log('Attachment Pending : ${value.length}');
-        });
-      }
-    } catch (e) {
-      log(e.toString());
-    }
-    database.close();
-  }
-
-  Future<void> processDbReference() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingReferenceDao;
-    try {
-      for (int i = 0; i < widget.argsSubmitDataModel.refrence.length; i++) {
-        final pendingReference = PendingReference(
-            taskCode: widget.argsSubmitDataModel.refrence[i].taskCode!,
-            name: widget.argsSubmitDataModel.refrence[i].name!,
-            phoneArea: widget.argsSubmitDataModel.refrence[i].phoneArea!,
-            phoneNumber: widget.argsSubmitDataModel.refrence[i].phoneNumber!,
-            remark: widget.argsSubmitDataModel.refrence[i].remark!,
-            value: widget.argsSubmitDataModel.refrence[i].value!);
-        await taskListDao.insertPendingRefrence(pendingReference);
-        await taskListDao
-            .findPendingRefrenceByCode(pendingReference.taskCode)
-            .then((value) {
-          log('Reference Pending : ${value.length}');
-        });
-      }
-    } catch (e) {
-      log(e.toString());
-    }
-    database.close();
-  }
-
-  Future<void> processDbSummary() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.pendingSummaryDao;
-    try {
-      final pendingSummary = PendingSummary(
-          taskCode: widget.argsSubmitDataModel.taskList.code,
-          remark: _notesCtrl.text,
-          notes: _sesuaiCtrl.text,
-          value:
-              _valueCtrl.text.isEmpty ? null : double.parse(_valueCtrl.text));
-      await taskListDao.insertPendingSummary(pendingSummary);
-    } catch (e) {
-      log(e.toString());
-    }
-    database.close();
+    await DatabaseHelper.updateQuestion(
+        widget.argsSubmitDataModel.answerResults);
+    await DatabaseHelper.updateAttachment(
+        widget.argsSubmitDataModel.uploadAttachment);
+    await DatabaseHelper.updateRefrence(widget.argsSubmitDataModel.refrence);
+    await DatabaseHelper.updateTask(
+        date: widget.argsSubmitDataModel.taskList.date!,
+        taskCode: widget.argsSubmitDataModel.taskList.code!,
+        remark: _notesCtrl.text,
+        notes: _sesuaiCtrl.text,
+        value: _valueCtrl.text.isEmpty ? 0.0 : double.parse(_valueCtrl.text),
+        status: 'PENDING');
   }
 
   void _submit() {
@@ -564,8 +387,6 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           actions: [
             InkWell(
               onTap: () async {
-                await processDbUpdateTaskDone();
-
                 Provider.of<FormSurvey4Provider>(context, listen: false)
                     .clearHubungan();
                 Navigator.pushNamedAndRemoveUntil(
@@ -656,10 +477,6 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                       Navigator.pop(context);
                       _submitDraft();
                       await processDbUpdateTaskPending();
-                      await processDbAnswer();
-                      await processDbAttachment();
-                      await processDbReference();
-                      await processDbSummary();
                       _goHomeDraft();
                     },
                     child: Container(
@@ -857,10 +674,6 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                 Navigator.pop(context);
                 _submitDraft();
                 await processDbUpdateTaskPending();
-                await processDbAnswer();
-                await processDbAttachment();
-                await processDbReference();
-                await processDbSummary();
                 _goHomeDraft();
               },
               child: Container(
@@ -895,7 +708,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.argsSubmitDataModel.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form Survey ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
@@ -931,14 +744,19 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                 BlocListener(
                   bloc: updateQuestionBloc,
                   listener: (_, UpdateQuestionState state) async {
-                    if (state is UpdateQuestionLoading) {}
+                    if (state is UpdateQuestionLoading) {
+                      log('Update Question $questionCount / ${widget.argsSubmitDataModel.answerResults.length}  Start');
+                    }
                     if (state is UpdateQuestionLoaded) {
+                      log('Update Question $questionCount / ${widget.argsSubmitDataModel.answerResults.length}  Done');
                       questionCount++;
                       if (questionCount <
                           widget.argsSubmitDataModel.answerResults.length) {
                         updateQuestionBloc.add(UpdateQuestionAttempt(widget
                             .argsSubmitDataModel.answerResults[questionCount]));
                       } else {
+                        await DatabaseHelper.updateQuestion(
+                            widget.argsSubmitDataModel.answerResults);
                         if (widget
                             .argsSubmitDataModel.uploadAttachment.isNotEmpty) {
                           uploadAttachmentBloc.add(UploadAttachmentAttempt(
@@ -950,14 +768,14 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                               widget.argsSubmitDataModel.refrence[refCount]));
                         } else {
                           updateTaskBloc.add(UpdateTaskAttempt(
-                              widget.argsSubmitDataModel.taskList.code,
-                              widget.argsSubmitDataModel.taskList.type,
+                              widget.argsSubmitDataModel.taskList.code!,
+                              widget.argsSubmitDataModel.taskList.type!,
                               _notesCtrl.text,
                               _valueCtrl.text == ""
                                   ? 0
                                   : double.parse(_valueCtrl.text),
                               _sesuaiCtrl.text,
-                              widget.argsSubmitDataModel.taskList.date));
+                              widget.argsSubmitDataModel.taskList.date!));
                         }
                       }
                     }
@@ -976,8 +794,11 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                 BlocListener(
                   bloc: uploadAttachmentBloc,
                   listener: (_, UploadAttachmentState state) async {
-                    if (state is UploadAttachmentLoading) {}
+                    if (state is UploadAttachmentLoading) {
+                      log('Insert Attachment $attachmentCount / ${widget.argsSubmitDataModel.uploadAttachment.length}  Start');
+                    }
                     if (state is UploadAttachmentLoaded) {
+                      log('Insert Attachment $attachmentCount / ${widget.argsSubmitDataModel.uploadAttachment.length}  Done');
                       attachmentCount++;
                       if (attachmentCount <
                           widget.argsSubmitDataModel.uploadAttachment.length) {
@@ -985,31 +806,33 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                             .argsSubmitDataModel
                             .uploadAttachment[attachmentCount]));
                       } else {
+                        await DatabaseHelper.updateAttachment(
+                            widget.argsSubmitDataModel.uploadAttachment);
                         if (widget.argsSubmitDataModel.taskList.type ==
                             'SURVEY') {
                           updateTaskBloc.add(UpdateTaskAttempt(
-                              widget.argsSubmitDataModel.taskList.code,
-                              widget.argsSubmitDataModel.taskList.type,
+                              widget.argsSubmitDataModel.taskList.code!,
+                              widget.argsSubmitDataModel.taskList.type!,
                               _notesCtrl.text,
                               _valueCtrl.text.isEmpty
                                   ? 0.0
                                   : double.parse(_valueCtrl.text),
                               _sesuaiCtrl.text,
-                              widget.argsSubmitDataModel.taskList.date));
+                              widget.argsSubmitDataModel.taskList.date!));
                         } else {
                           if (widget.argsSubmitDataModel.refrence.isNotEmpty) {
                             referenceBloc.add(InsertReferenceAttempt(
                                 widget.argsSubmitDataModel.refrence[refCount]));
                           } else {
                             updateTaskBloc.add(UpdateTaskAttempt(
-                                widget.argsSubmitDataModel.taskList.code,
-                                widget.argsSubmitDataModel.taskList.type,
+                                widget.argsSubmitDataModel.taskList.code!,
+                                widget.argsSubmitDataModel.taskList.type!,
                                 _notesCtrl.text,
                                 _valueCtrl.text.isEmpty
                                     ? 0.0
                                     : double.parse(_valueCtrl.text),
                                 _sesuaiCtrl.text,
-                                widget.argsSubmitDataModel.taskList.date));
+                                widget.argsSubmitDataModel.taskList.date!));
                           }
                         }
                       }
@@ -1030,23 +853,28 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                 BlocListener(
                   bloc: referenceBloc,
                   listener: (_, ReferenceState state) async {
-                    if (state is ReferenceLoading) {}
+                    if (state is ReferenceLoading) {
+                      log('Insert Ref $refCount / ${widget.argsSubmitDataModel.refrence.length}  Start');
+                    }
                     if (state is ReferenceLoaded) {
+                      log('Insert Ref $refCount / ${widget.argsSubmitDataModel.refrence.length}  Done');
                       refCount++;
                       if (refCount <
                           widget.argsSubmitDataModel.refrence.length) {
                         referenceBloc.add(InsertReferenceAttempt(
                             widget.argsSubmitDataModel.refrence[refCount]));
                       } else {
+                        await DatabaseHelper.updateRefrence(
+                            widget.argsSubmitDataModel.refrence);
                         updateTaskBloc.add(UpdateTaskAttempt(
-                            widget.argsSubmitDataModel.taskList.code,
-                            widget.argsSubmitDataModel.taskList.type,
+                            widget.argsSubmitDataModel.taskList.code!,
+                            widget.argsSubmitDataModel.taskList.type!,
                             _notesCtrl.text,
                             _valueCtrl.text.isEmpty
                                 ? 0.0
                                 : double.parse(_valueCtrl.text),
                             _sesuaiCtrl.text,
-                            widget.argsSubmitDataModel.taskList.date));
+                            widget.argsSubmitDataModel.taskList.date!));
                       }
                     }
                     if (state is ReferenceError) {
@@ -1065,8 +893,21 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                 BlocListener(
                   bloc: updateTaskBloc,
                   listener: (_, UpdateTaskState state) async {
-                    if (state is UpdateTaskLoading) {}
+                    if (state is UpdateTaskLoading) {
+                      log('Update Task Start');
+                    }
                     if (state is UpdateTaskLoaded) {
+                      log('Update Task Done');
+
+                      await DatabaseHelper.updateTask(
+                          date: widget.argsSubmitDataModel.taskList.date!,
+                          taskCode: widget.argsSubmitDataModel.taskList.code!,
+                          remark: _notesCtrl.text,
+                          notes: _sesuaiCtrl.text,
+                          value: _valueCtrl.text.isEmpty
+                              ? 0.0
+                              : double.parse(_valueCtrl.text),
+                          status: 'WAITING');
                       _goHome();
                     }
                     if (state is UpdateTaskError) {
@@ -1166,9 +1007,9 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                             updateTaskBloc.add(
                                                 UpdateTaskAttempt(
                                                     widget.argsSubmitDataModel
-                                                        .taskList.code,
+                                                        .taskList.code!,
                                                     widget.argsSubmitDataModel
-                                                        .taskList.type,
+                                                        .taskList.type!,
                                                     _notesCtrl.text,
                                                     _valueCtrl.text == ""
                                                         ? 0
@@ -1176,7 +1017,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                                             _valueCtrl.text),
                                                     _sesuaiCtrl.text,
                                                     widget.argsSubmitDataModel
-                                                        .taskList.date));
+                                                        .taskList.date!));
                                           }
                                         } else {
                                           _warningOffline();
@@ -1219,9 +1060,9 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                             updateTaskBloc.add(
                                                 UpdateTaskAttempt(
                                                     widget.argsSubmitDataModel
-                                                        .taskList.code,
+                                                        .taskList.code!,
                                                     widget.argsSubmitDataModel
-                                                        .taskList.type,
+                                                        .taskList.type!,
                                                     _notesCtrl.text,
                                                     _valueCtrl.text == ""
                                                         ? 0
@@ -1229,7 +1070,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                                             _valueCtrl.text),
                                                     _sesuaiCtrl.text,
                                                     widget.argsSubmitDataModel
-                                                        .taskList.date));
+                                                        .taskList.date!));
                                           }
                                         } else {
                                           _warningOffline();

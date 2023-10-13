@@ -1,13 +1,9 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-
+import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart'
+    as task;
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/network_util.dart';
 import '../widget/button_next_1_widget.dart';
@@ -15,7 +11,7 @@ import '../widget/form_info_1_widget.dart';
 
 class FormSurvey1Screen extends StatefulWidget {
   const FormSurvey1Screen({super.key, required this.taskList});
-  final TaskList taskList;
+  final task.Data taskList;
   @override
   State<FormSurvey1Screen> createState() => _FormSurvey1ScreenState();
 }
@@ -30,7 +26,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
   @override
   void initState() {
     if (widget.taskList.status != 'ASSIGN') {
-      DateTime tempDate = DateFormat('yyyy-MM-dd').parse(widget.taskList.date);
+      DateTime tempDate = DateFormat('yyyy-MM-dd').parse(widget.taskList.date!);
       var inputDate = DateTime.parse(tempDate.toString());
       var outputFormat = DateFormat('dd/MM/yyyy');
       date = outputFormat.format(inputDate);
@@ -59,8 +55,8 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
 
   void getAddress() async {
     List<Placemark> placemarks = await placemarkFromCoordinates(
-        double.parse(widget.taskList.latitude),
-        double.parse(widget.taskList.longitude));
+        double.parse(widget.taskList.latitude!),
+        double.parse(widget.taskList.longitude!));
 
     Placemark place = placemarks[0];
     setState(() {
@@ -101,7 +97,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form Survey ${widget.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
@@ -155,35 +151,35 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                               title: 'Cabang',
                               heightContent: 45,
                               widthContent: MediaQuery.of(context).size.width,
-                              content: widget.taskList.branchName),
+                              content: widget.taskList.branchName!),
                           const SizedBox(height: 16),
                           FormInfo1Widget(
                               widthTitle: MediaQuery.of(context).size.width,
                               title: 'Agreement No.',
                               heightContent: 45,
                               widthContent: MediaQuery.of(context).size.width,
-                              content: widget.taskList.agreementNo),
+                              content: widget.taskList.agreementNo!),
                           const SizedBox(height: 16),
                           FormInfo1Widget(
                               widthTitle: MediaQuery.of(context).size.width,
                               title: 'Nama Pelanggan',
                               heightContent: 45,
                               widthContent: MediaQuery.of(context).size.width,
-                              content: widget.taskList.clientName),
+                              content: widget.taskList.clientName!),
                           const SizedBox(height: 16),
                           FormInfo1Widget(
                               widthTitle: MediaQuery.of(context).size.width,
                               title: 'No. Telp',
                               heightContent: 45,
                               widthContent: MediaQuery.of(context).size.width,
-                              content: widget.taskList.mobileNo),
+                              content: widget.taskList.mobileNo!),
                           const SizedBox(height: 16),
                           FormInfo1Widget(
                               widthTitle: MediaQuery.of(context).size.width,
                               title: 'Type',
                               heightContent: 45,
                               widthContent: MediaQuery.of(context).size.width,
-                              content: widget.taskList.type),
+                              content: widget.taskList.type!),
                         ],
                       ),
                     ),
@@ -325,7 +321,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                                         ),
                                         child: Align(
                                           alignment: Alignment.centerLeft,
-                                          child: Text(widget.taskList.picName,
+                                          child: Text(widget.taskList.picName!,
                                               style: TextStyle(
                                                   fontSize: 14,
                                                   color: const Color(0xFF2D2A26)
@@ -345,7 +341,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                               title: 'Survey Code',
                               heightContent: 45,
                               widthContent: MediaQuery.of(context).size.width,
-                              content: widget.taskList.code),
+                              content: widget.taskList.code!),
                           const SizedBox(height: 16),
                           SizedBox(
                             width: MediaQuery.of(context).size.width,
@@ -373,93 +369,102 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(10.0)),
                                   ),
-                                  child: Column(
-                                    children: [
-                                      !isConnect
-                                          ? Image.asset(
-                                              'assets/maps_placeholder.png')
-                                          : SizedBox(
-                                              height: 150,
-                                              width: double.infinity,
-                                              child: AbsorbPointer(
-                                                absorbing: true,
-                                                child: FlutterMap(
-                                                  options: MapOptions(
-                                                    center: LatLng(
-                                                        double.parse(widget
-                                                            .taskList.latitude),
-                                                        double.parse(widget
-                                                            .taskList
-                                                            .longitude)),
-                                                    zoom: 17.0,
-                                                    keepAlive: false,
-                                                  ),
-                                                  layers: [
-                                                    // TileLayerOptions(
-                                                    //   urlTemplate:
-                                                    //       "https://api.tiles.mapbox.com/v4/"
-                                                    //       "{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}",
-                                                    //   additionalOptions: {
-                                                    //     'accessToken':
-                                                    //         '31232956-93ac-41b1-aa98-c048527f8ea0',
-                                                    //     'id': 'mapbox.streets',
-                                                    //   },
-                                                    // ),
-                                                    TileLayerOptions(
-                                                        urlTemplate:
-                                                            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                                        subdomains: [
-                                                          'a',
-                                                          'b',
-                                                          'c'
-                                                        ]),
-                                                    MarkerLayerOptions(
-                                                      markers: [
-                                                        Marker(
-                                                          width: 30.0,
-                                                          height: 30.0,
-                                                          point: LatLng(
-                                                              double.parse(widget
-                                                                  .taskList
-                                                                  .latitude),
-                                                              double.parse(widget
-                                                                  .taskList
-                                                                  .longitude)),
-                                                          builder: (ctx) =>
-                                                              Image.asset(
-                                                            'assets/icon/pin.png',
-                                                            scale: 1,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                      const SizedBox(height: 16),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(!isConnect ? '-' : address,
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF2D2A26),
-                                                fontWeight: FontWeight.w600)),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                            !isConnect
-                                                ? '-'
-                                                : '$area, $location, $postal',
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF2D2A26),
-                                                fontWeight: FontWeight.w400)),
-                                      ),
-                                    ],
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(widget.taskList.location!,
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF2D2A26),
+                                            fontWeight: FontWeight.w400)),
                                   ),
+
+                                  // Column(
+                                  //   children: [
+                                  //     // !isConnect
+                                  //     //     ? Image.asset(
+                                  //     //         'assets/maps_placeholder.png')
+                                  //     //     : SizedBox(
+                                  //     //         height: 150,
+                                  //     //         width: double.infinity,
+                                  //     //         child: AbsorbPointer(
+                                  //     //           absorbing: true,
+                                  //     //           child: FlutterMap(
+                                  //     //             options: MapOptions(
+                                  //     //               center: LatLng(
+                                  //     //                   double.parse(widget
+                                  //     //                       .taskList.latitude),
+                                  //     //                   double.parse(widget
+                                  //     //                       .taskList
+                                  //     //                       .longitude)),
+                                  //     //               zoom: 17.0,
+                                  //     //               keepAlive: false,
+                                  //     //             ),
+                                  //     //             layers: [
+                                  //     //               // TileLayerOptions(
+                                  //     //               //   urlTemplate:
+                                  //     //               //       "https://api.tiles.mapbox.com/v4/"
+                                  //     //               //       "{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}",
+                                  //     //               //   additionalOptions: {
+                                  //     //               //     'accessToken':
+                                  //     //               //         '31232956-93ac-41b1-aa98-c048527f8ea0',
+                                  //     //               //     'id': 'mapbox.streets',
+                                  //     //               //   },
+                                  //     //               // ),
+                                  //     //               TileLayerOptions(
+                                  //     //                   urlTemplate:
+                                  //     //                       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  //     //                   subdomains: [
+                                  //     //                     'a',
+                                  //     //                     'b',
+                                  //     //                     'c'
+                                  //     //                   ]),
+                                  //     //               MarkerLayerOptions(
+                                  //     //                 markers: [
+                                  //     //                   Marker(
+                                  //     //                     width: 30.0,
+                                  //     //                     height: 30.0,
+                                  //     //                     point: LatLng(
+                                  //     //                         double.parse(widget
+                                  //     //                             .taskList
+                                  //     //                             .latitude),
+                                  //     //                         double.parse(widget
+                                  //     //                             .taskList
+                                  //     //                             .longitude)),
+                                  //     //                     builder: (ctx) =>
+                                  //     //                         Image.asset(
+                                  //     //                       'assets/icon/pin.png',
+                                  //     //                       scale: 1,
+                                  //     //                     ),
+                                  //     //                   ),
+                                  //     //                 ],
+                                  //     //               ),
+                                  //     //             ],
+                                  //     //           ),
+                                  //     //         ),
+                                  //     //       ),
+                                  //     // const SizedBox(height: 16),
+                                  //     Align(
+                                  //       alignment: Alignment.centerLeft,
+                                  //       child: Text(!isConnect ? '-' : address,
+                                  //           style: const TextStyle(
+                                  //               fontSize: 12,
+                                  //               color: Color(0xFF2D2A26),
+                                  //               fontWeight: FontWeight.w600)),
+                                  //     ),
+                                  //     const SizedBox(height: 8),
+                                  //     Align(
+                                  //       alignment: Alignment.centerLeft,
+                                  //       child: Text(
+                                  //           !isConnect
+                                  //               ? '-'
+                                  //               : '$area, $location, $postal',
+                                  //           style: const TextStyle(
+                                  //               fontSize: 12,
+                                  //               color: Color(0xFF2D2A26),
+                                  //               fontWeight: FontWeight.w400)),
+                                  //     ),
+                                  //   ],
+                                  // ),
                                 ),
                               ],
                             ),

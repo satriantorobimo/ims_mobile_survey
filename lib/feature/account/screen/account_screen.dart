@@ -5,7 +5,7 @@ import 'package:mobile_survey/components/loading_comp.dart';
 import 'package:mobile_survey/feature/account/bloc/logout_bloc/bloc.dart';
 import 'package:mobile_survey/feature/account/domain/repo/logout_repo.dart';
 import 'package:mobile_survey/feature/login/data/user_data_model.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/firebase_notification_service.dart';
 import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
@@ -50,12 +50,20 @@ class _AccountScreenState extends State<AccountScreen>
   }
 
   Future<void> getUserData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final personDao = database.userDao;
-    final user = await personDao.findUserById(0);
+    final data = await DatabaseHelper.getUserData(1);
+
     setState(() {
-      userData = user!;
+      userData = User(
+          ucode: data[0]['ucode'],
+          id: data[0]['id'],
+          name: data[0]['name'],
+          systemDate: data[0]['system_date'],
+          branchCode: data[0]['branch_code'],
+          branchName: data[0]['branch_name'],
+          idpp: data[0]['idpp'],
+          companyCode: data[0]['company_code'],
+          companyName: data[0]['company_name'],
+          deviceId: data[0]['device_id']);
       isLoading = false;
     });
   }
@@ -443,11 +451,8 @@ class _AccountScreenState extends State<AccountScreen>
                       if (state is LogoutLoaded) {
                         SharedPrefUtil.deleteSharedPref('token')
                             .then((value) async {
-                          final database = await $FloorAppDatabase
-                              .databaseBuilder('mobile_survey.db')
-                              .build();
-                          final personDao = database.userDao;
-                          personDao.deleteUserById(0);
+                          //delete user
+                          await DatabaseHelper.deleteUser(1);
                           final FirebaseNotificationService
                               firebaseNotificationService =
                               FirebaseNotificationService();

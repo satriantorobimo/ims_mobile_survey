@@ -5,18 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:group_radio_button/group_radio_button.dart';
 import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/components/loading_grid_comp.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart'
+    as task;
 import 'package:mobile_survey/feature/form_survey_2/data/answer_result_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/widget/button_next_2_widget.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import '../../../utility/string_router_util.dart';
 import '../widget/drop_down_search_widget.dart';
 
 class FormSurvey2Screen extends StatefulWidget {
   const FormSurvey2Screen({super.key, required this.taskList});
-  final TaskList taskList;
+  final task.Data taskList;
 
   @override
   State<FormSurvey2Screen> createState() => _FormSurvey2ScreenState();
@@ -98,20 +99,20 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                             widget.taskList.status == 'DONE'
                         ? Colors.grey
                         : Colors.black),
-                onEditingComplete: () {
+                onChanged: (value) {
                   var isData = results.where(
                       (element) => element.pCode!.contains(data[index].code!));
                   if (isData.isNotEmpty) {
                     results.removeWhere((element) =>
                         element.pCode!.contains(data[index].code!));
                     results.add(AnswerResultsModel(
-                        pAnswer: controllers[index].text,
-                        pCode: data[index].code!));
+                        pAnswer: value, pCode: data[index].code!));
                   } else {
                     results.add(AnswerResultsModel(
-                        pAnswer: controllers[index].text,
-                        pCode: data[index].code!));
+                        pAnswer: value, pCode: data[index].code!));
                   }
+                },
+                onEditingComplete: () {
                   FocusScopeNode currentFocus = FocusScope.of(context);
 
                   if (!currentFocus.hasPrimaryFocus) {
@@ -219,10 +220,14 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                         .answerChoice![i]
                                         .questionCode!));
                                 results.add(AnswerResultsModel(
-                                    pAnswerChoiceId: value[i].id, pCode: code));
+                                    pAnswer: values,
+                                    pAnswerChoiceId: value[i].id,
+                                    pCode: code));
                               } else {
                                 results.add(AnswerResultsModel(
-                                    pAnswerChoiceId: value[i].id, pCode: code));
+                                    pAnswer: values,
+                                    pAnswerChoiceId: value[i].id,
+                                    pCode: code));
                               }
                             }
                           }
@@ -249,67 +254,54 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
   }
 
   _getData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final questionListDao = database.questionListDao;
-    final answerListDao = database.answerListDao;
     late List<Data> datas = [];
-    await questionListDao
-        .findQuestionListByTaskCode(widget.taskList.code)
-        .then((value) async {
+    await DatabaseHelper.getQuestion(widget.taskList.code!).then((value) async {
       if (value.isNotEmpty) {
         for (int i = 0; i < value.length; i++) {
           controllers.add(TextEditingController());
           late List<AnswerChoice> answerList = [];
-          // if (widget.taskList.status == 'WAITING' ||
-          //     widget.taskList.status == 'DONE' ||
-          //     widget.taskList.status == 'RETURN') {
-          //   controllers[i].text = value[i]!.answer!;
-          // }
-          controllers[i].text = value[i]!.answer!;
-
-          await answerListDao
-              .findAnswerListByCode(value[i]!.code)
-              .then((values) {
+          controllers[i].text = value[i].answer ?? " ";
+          // (value[i].answer == " " ? null : value[i].answer)!;
+          await DatabaseHelper.getAnswer(value[i].questionCode!).then((values) {
+            log('${values.length}');
             if (values.isNotEmpty) {
               for (int x = 0; x < values.length; x++) {
                 answerList.add(AnswerChoice(
                     id: values[x].id,
                     questionOptionDesc: values[x].questionOptionDesc,
-                    questionCode: value[i]!.questionCode));
+                    questionCode: value[i].questionCode));
 
                 if (x == values.length - 1) {
                   datas.add(Data(
                       answerChoice: answerList,
-                      answer: value[i]!.answer,
-                      answerChoiceId: value[i]!.answerChoiceId,
-                      code: value[i]!.code,
-                      questionCode: value[i]!.questionCode,
-                      questionDesc: value[i]!.questionDesc,
-                      taskCode: value[i]!.taskCode,
-                      type: value[i]!.type));
+                      answer: value[i].answer,
+                      answerChoiceId: value[i].answerChoiceId,
+                      code: value[i].code,
+                      questionCode: value[i].questionCode,
+                      questionDesc: value[i].questionDesc,
+                      taskCode: value[i].taskCode,
+                      type: value[i].type));
                 }
               }
             } else {
               datas.add(Data(
                   answerChoice: [],
-                  answer: value[i]!.answer,
-                  answerChoiceId: value[i]!.answerChoiceId,
-                  code: value[i]!.code,
-                  questionCode: value[i]!.questionCode,
-                  questionDesc: value[i]!.questionDesc,
-                  taskCode: value[i]!.taskCode,
-                  type: value[i]!.type));
+                  answer: value[i].answer,
+                  answerChoiceId: value[i].answerChoiceId,
+                  code: value[i].code,
+                  questionCode: value[i].questionCode,
+                  questionDesc: value[i].questionDesc,
+                  taskCode: value[i].taskCode,
+                  type: value[i].type));
             }
           });
         }
-      } else {}
+      }
     });
 
     setState(() {
       data.addAll(datas);
       isLoading = false;
-      database.close();
     });
   }
 
@@ -332,7 +324,7 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
           backgroundColor: Colors.white,
           elevation: 0,
           title: Text(
-            'Form Survey ${widget.taskList.type.toLowerCase().capitalizeOnlyFirstLater()}',
+            'Form Survey ${widget.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
             style: const TextStyle(
                 fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
           ),
@@ -481,6 +473,9 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                   if (results
                                                                       .isEmpty) {
                                                                     results.add(AnswerResultsModel(
+                                                                        pAnswer:
+                                                                            data[index]
+                                                                                .answer,
                                                                         pAnswerChoiceId: data[index]
                                                                             .answerChoice![
                                                                                 i]
@@ -502,6 +497,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                               .answerChoice![i]
                                                                               .questionCode!));
                                                                       results.add(AnswerResultsModel(
+                                                                          pAnswer: data[index]
+                                                                              .answer,
                                                                           pAnswerChoiceId: data[index]
                                                                               .answerChoice![
                                                                                   i]
@@ -510,6 +507,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                               data[index].code));
                                                                     } else {
                                                                       results.add(AnswerResultsModel(
+                                                                          pAnswer: data[index]
+                                                                              .answer,
                                                                           pAnswerChoiceId: data[index]
                                                                               .answerChoice![
                                                                                   i]
@@ -583,7 +582,10 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                       .toLowerCase()
                                                       .capitalizeOnlyFirstLater(),
                                                   hint: 'Pilih Jawaban',
-                                                  value: data[index].answer,
+                                                  value:
+                                                      data[index].answer == ""
+                                                          ? null
+                                                          : data[index].answer,
                                                   enabled:
                                                       widget.taskList.status ==
                                                                   'WAITING' ||
@@ -611,6 +613,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                               if (result !=
                                                                   null) {
                                                                 setState(() {
+                                                                  log(result
+                                                                      .toString());
                                                                   data[index]
                                                                           .answer =
                                                                       result
@@ -630,6 +634,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                     if (results
                                                                         .isEmpty) {
                                                                       results.add(AnswerResultsModel(
+                                                                          pAnswer: data[index]
+                                                                              .answer,
                                                                           pAnswerChoiceId: data[index]
                                                                               .answerChoice![
                                                                                   i]
@@ -649,13 +655,15 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                             .pCode!
                                                                             .contains(data[index].answerChoice![i].questionCode!));
                                                                         results.add(AnswerResultsModel(
-                                                                            pAnswerChoiceId:
-                                                                                data[index].answerChoice![i].id,
+                                                                            pAnswer:
+                                                                                data[index].answer,
+                                                                            pAnswerChoiceId: data[index].answerChoice![i].id,
                                                                             pCode: data[index].code));
                                                                       } else {
                                                                         results.add(AnswerResultsModel(
-                                                                            pAnswerChoiceId:
-                                                                                data[index].answerChoice![i].id,
+                                                                            pAnswer:
+                                                                                data[index].answer,
+                                                                            pAnswerChoiceId: data[index].answerChoice![i].id,
                                                                             pCode: data[index].code));
                                                                       }
                                                                     }

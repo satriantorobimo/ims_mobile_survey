@@ -1,7 +1,4 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
 

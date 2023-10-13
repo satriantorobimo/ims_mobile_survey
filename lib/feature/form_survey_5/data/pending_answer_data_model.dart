@@ -1,8 +1,4 @@
-import 'package:floor/floor.dart';
-
-@entity
 class PendingAnswer {
-  @PrimaryKey(autoGenerate: true)
   int? ids;
 
   String taskCode;

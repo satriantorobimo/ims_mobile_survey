@@ -50,6 +50,7 @@ class Data {
   String? fileName;
   String? filePath;
   String? type;
+  String? isRequired;
   bool? newData;
 
   Data(
@@ -60,6 +61,7 @@ class Data {
       this.fileName,
       this.filePath,
       this.type,
+      this.isRequired,
       this.newData});
 
   Data.fromJson(Map<String, dynamic> json) {
@@ -70,6 +72,7 @@ class Data {
     fileName = json['file_name'];
     filePath = json['file_path'];
     type = json['type'];
+    isRequired = json['is_required'];
   }
 
   Map<String, dynamic> toJson() {
@@ -81,6 +84,32 @@ class Data {
     data['file_name'] = fileName;
     data['file_path'] = filePath;
     data['type'] = type;
+    data['is_required'] = isRequired;
     return data;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'task_code': taskCode,
+      'document_code': documentCode,
+      'document_name': documentName,
+      'file_name': fileName,
+      'file_path': filePath,
+      'type': type,
+      'is_required': isRequired
+    };
+  }
+
+  factory Data.fromMap(Map<String, dynamic> map) {
+    return Data(
+        id: map['id'],
+        taskCode: map['task_code'],
+        documentCode: map['document_code'],
+        documentName: map['document_name'],
+        fileName: map['file_name'],
+        filePath: map['file_path'],
+        type: map['type'],
+        isRequired: map['is_required']);
   }
 }

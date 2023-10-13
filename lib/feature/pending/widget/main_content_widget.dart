@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
+
+import '../../assignment/data/task_list_response_model.dart';
 
 class MainContentWidget extends StatelessWidget {
   const MainContentWidget({super.key, required this.taskList});
-  final TaskList taskList;
+  final Data taskList;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -21,7 +22,7 @@ class MainContentWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            taskList.clientName,
+            taskList.clientName!,
             style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -29,7 +30,7 @@ class MainContentWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            taskList.type,
+            taskList.type!,
             style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
@@ -40,7 +41,7 @@ class MainContentWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                taskList.agreementNo,
+                taskList.agreementNo!,
                 style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

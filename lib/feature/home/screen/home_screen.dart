@@ -7,22 +7,10 @@ import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/components/loading_comp.dart';
 import 'package:mobile_survey/components/loading_grid_comp.dart';
 import 'package:mobile_survey/feature/assignment/bloc/task_list_bloc/bloc.dart';
-import 'package:mobile_survey/feature/assignment/data/task_list_data_model.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart';
 import 'package:mobile_survey/feature/assignment/domain/repo/task_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_2/bloc/question_list_bloc/bloc.dart';
-import 'package:mobile_survey/feature/form_survey_2/data/answer_list_data_model.dart';
-import 'package:mobile_survey/feature/form_survey_2/data/question_list_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/domain/repo/question_list_repo.dart';
-import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart'
-    as qst;
-import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_data_model.dart';
-import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_response_model.dart'
-    as atc;
-import 'package:mobile_survey/feature/form_survey_4/data/reference_list_model.dart';
-
-import 'package:mobile_survey/feature/form_survey_4/data/reference_list_response_model.dart'
-    as rfr;
 import 'package:mobile_survey/feature/form_survey_3/bloc/attachment_list_bloc/bloc.dart';
 import 'package:mobile_survey/feature/form_survey_3/domain/repo/attachment_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_4/bloc/reference_list_bloc/bloc.dart';
@@ -31,7 +19,7 @@ import 'package:mobile_survey/feature/home/widget/header_home_widget.dart';
 import 'package:mobile_survey/feature/home/widget/main_content_home_widget.dart';
 import 'package:mobile_survey/feature/home/widget/user_info_home_widget.dart';
 import 'package:mobile_survey/feature/login/data/user_data_model.dart';
-import 'package:mobile_survey/utility/database_util.dart';
+import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/network_util.dart';
 import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:mobile_survey/utility/string_router_util.dart';
@@ -56,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ReferenceListBloc(referenceRepo: ReferenceRepo());
 
   List<Data> taskListData = [];
-  List<Data> taskListDataWaiting = [];
   late User userData;
   bool isLoading = true,
       isLoadingListData = true,
@@ -70,14 +57,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     NetworkInfo(internetConnectionChecker).isConnected.then((value) async {
       if (value) {
-        SharedPrefUtil.getSharedBool('first').then((val) {
+        SharedPrefUtil.getSharedBool('first').then((val) async {
           if (val == null) {
             isFirstTime = true;
+            taskListBloc.add(const TaskListAttempt());
           } else {
             isFirstTime = false;
+            _loadingData(context);
+            await _sortingData();
+            setState(() {
+              isLoadingListData = false;
+            });
+            // ignore: use_build_context_synchronously
+            Navigator.pop(context);
           }
-
-          getData();
         });
       } else {
         log('No Connection');
@@ -106,27 +99,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Future<void> getData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-    await taskListDao.findAllTaskList().then((value) async {
-      if (value.isEmpty) {
-        taskListBloc.add(const TaskListAttempt());
-      } else {
-        _loadingData(context);
-        await _sortingData();
-
-        setState(() {
-          isLoadingListData = false;
-        });
-        // ignore: use_build_context_synchronously
-        Navigator.pop(context);
-      }
-    });
-    database.close();
-  }
-
   Future<void> _pullRefresh() async {
     setState(() {
       isFirstTime = false;
@@ -136,209 +108,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       returned = 0;
       done = 0;
       taskListData = [];
-      taskListDataWaiting = [];
     });
     taskListBloc.add(const TaskListAttempt());
     getUserData();
   }
 
   Future<void> getUserData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final personDao = database.userDao;
-    final user = await personDao.findUserById(0);
+    final data = await DatabaseHelper.getUserData(1);
+
     setState(() {
-      userData = user!;
+      userData = User(
+          ucode: data[0]['ucode'],
+          id: data[0]['id'],
+          name: data[0]['name'],
+          systemDate: data[0]['system_date'],
+          branchCode: data[0]['branch_code'],
+          branchName: data[0]['branch_name'],
+          idpp: data[0]['idpp'],
+          companyCode: data[0]['company_code'],
+          companyName: data[0]['company_name'],
+          deviceId: data[0]['device_id']);
       isLoading = false;
     });
-    database.close();
-  }
-
-  Future<void> _processDb(List<Data> data) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-
-    await taskListDao.findAllTaskList().then((value) async {
-      if (value.isEmpty) {
-        List<TaskList> taskList = data
-            .map((e) => TaskList(
-                code: e.code!,
-                date: e.date!,
-                status: e.status!,
-                remark: e.remark,
-                result: e.result,
-                picCode: e.picCode!,
-                picName: e.picName!,
-                branchName: e.branchName!,
-                agreementNo: e.agreementNo!,
-                clientName: e.clientName!,
-                mobileNo: e.mobileNo!,
-                location: e.location!,
-                latitude: e.latitude!,
-                longitude: e.longitude!,
-                type: e.type!,
-                appraisalAmount: e.appraisalAmount,
-                reviewRemark: e.reviewRemark,
-                modDate: e.modDate!))
-            .toList();
-        await taskListDao.insertAllTaskList(taskList);
-      } else {
-        // log('Task List di db Isi');
-        await SharedPrefUtil.saveSharedBool('first', true);
-        await taskListDao.findTaskListByStatus('PENDING').then((value) async {
-          List<Data> taskListTemp = data;
-          if (value.isNotEmpty) {
-            for (int i = 0; i < value.length; i++) {
-              String? code = value[i]!.code;
-              taskListTemp.removeWhere((element) => element.code == code);
-              if (i == value.length - 1) {
-                List<TaskList> taskList = taskListTemp
-                    .map((e) => TaskList(
-                        code: e.code!,
-                        date: e.date!,
-                        status: e.status!,
-                        remark: e.remark,
-                        result: e.result,
-                        picCode: e.picCode!,
-                        picName: e.picName!,
-                        branchName: e.branchName!,
-                        agreementNo: e.agreementNo!,
-                        clientName: e.clientName!,
-                        mobileNo: e.mobileNo!,
-                        location: e.location!,
-                        latitude: e.latitude!,
-                        longitude: e.longitude!,
-                        type: e.type!,
-                        appraisalAmount: e.appraisalAmount,
-                        reviewRemark: e.reviewRemark,
-                        modDate: e.modDate!))
-                    .toList();
-                await taskListDao.deleteTaskListByStatus('ASSIGN');
-                await taskListDao.deleteTaskListByStatus('RETURN');
-                await taskListDao.deleteTaskListByStatus('DONE');
-                await taskListDao.deleteTaskListByStatus('WAITING');
-                await taskListDao.insertAllTaskList(taskList);
-              }
-            }
-          } else {
-            List<TaskList> taskList = data
-                .map((e) => TaskList(
-                    code: e.code!,
-                    date: e.date!,
-                    status: e.status!,
-                    remark: e.remark,
-                    result: e.result,
-                    picCode: e.picCode!,
-                    picName: e.picName!,
-                    branchName: e.branchName!,
-                    agreementNo: e.agreementNo!,
-                    clientName: e.clientName!,
-                    mobileNo: e.mobileNo!,
-                    location: e.location!,
-                    latitude: e.latitude!,
-                    longitude: e.longitude!,
-                    type: e.type!,
-                    appraisalAmount: e.appraisalAmount,
-                    reviewRemark: e.reviewRemark,
-                    modDate: e.modDate!))
-                .toList();
-            await taskListDao.deleteTaskListByStatus('ASSIGN');
-            await taskListDao.deleteTaskListByStatus('RETURN');
-            await taskListDao.deleteTaskListByStatus('DONE');
-            await taskListDao.deleteTaskListByStatus('WAITING');
-            await taskListDao.insertAllTaskList(taskList);
-          }
-        });
-      }
-    });
-
-    await _sortingData();
-    setState(() {
-      isLoadingListData = false;
-    });
-    database.close();
-  }
-
-  Future<void> _processDbQuestion(List<qst.Data> data) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final questionListDao = database.questionListDao;
-    final answerListDao = database.answerListDao;
-    if (data.isNotEmpty) {
-      List<QuestionList> questionList = data
-          .map((e) => QuestionList(
-              code: e.code!,
-              taskCode: e.taskCode!,
-              questionCode: e.questionCode!,
-              questionDesc: e.questionDesc!,
-              type: e.type!,
-              answer: e.answer,
-              answerChoiceId: e.answerChoiceId))
-          .toList();
-
-      await questionListDao.insertAllQuestionList(questionList);
-
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].answerChoice!.isNotEmpty) {
-          List<AnswerList> answerList = data[i]
-              .answerChoice!
-              .map((e) => AnswerList(
-                  id: e.id!,
-                  questionOptionDesc: e.questionOptionDesc!,
-                  taskQuestionCode: data[i].code!))
-              .toList();
-
-          await answerListDao.insertAllAnswerList(answerList);
-        }
-      }
-      database.close();
-    }
-  }
-
-  Future<void> _processDeleteDbQuestion(List<Data> data) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final questionListDao = database.questionListDao;
-    final answerListDao = database.answerListDao;
-    if (data.isNotEmpty) {
-      for (int i = 0; i < data.length; i++) {
-        await questionListDao.deleteQuestionListByCode(data[i].code!);
-      }
-      await answerListDao.deleteAnswerList();
-      await questionListDao
-          .findAllQuestionList()
-          .then((value) => log('${value.length}'));
-      await answerListDao
-          .findAllAnswerList()
-          .then((value) => log('${value.length}'));
-      database.close();
-    }
   }
 
   Future<void> _sortingData() async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final taskListDao = database.taskListDao;
-
-    await taskListDao.findAllTaskList().then((value) async {
+    DatabaseHelper.getTask().then((value) {
       for (int i = 0; i < value.length; i++) {
-        if (value[i]!.status == 'ASSIGN') {
+        if (value[i].status == 'ASSIGN') {
           setState(() {
             ongoing++;
           });
-        } else if (value[i]!.status == 'DONE') {
+        } else if (value[i].status == 'DONE') {
           setState(() {
             done++;
           });
-        } else if (value[i]!.status == 'RETURN') {
+        } else if (value[i].status == 'RETURN') {
           setState(() {
             returned++;
           });
         }
       }
     });
-    database.close();
   }
 
   void _sessionExpired() {
@@ -491,69 +302,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> _processDbAttachment(List<atc.Data> data) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final attachmentListDao = database.attachmentListDao;
-
-    List<AttachmentList> attachmentList = data
-        .map((e) => AttachmentList(
-            id: e.id!,
-            taskCode: e.taskCode!,
-            documentCode: e.documentCode!,
-            documentName: e.documentName!,
-            type: e.type!,
-            fileName: e.fileName!,
-            filePath: e.filePath!))
-        .toList();
-
-    await attachmentListDao.insertAllAttachmentList(attachmentList);
-
-    database.close();
-  }
-
-  Future<void> _processDeleteDbAttachment(List<Data> data) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final attachmentListDao = database.attachmentListDao;
-
-    for (int i = 0; i < data.length; i++) {
-      await attachmentListDao.deleteAttachmentListByCode(data[i].code!);
+  Future<void> _insertTask(List<Data> datas) async {
+    if (isFirstTime) {
+      taskListData.addAll(datas);
+      await DatabaseHelper.insertTask(datas);
+      _sortingData();
+    } else {
+      List<Data> tempData = datas;
+      await DatabaseHelper.getTaskPending().then((value) async {
+        for (int i = 0; i < value.length; i++) {
+          tempData.removeWhere((item) => item.code == value[i].code);
+        }
+        taskListData.addAll(tempData);
+        await DatabaseHelper.insertTask(tempData);
+        _sortingData();
+      });
     }
-
-    database.close();
-  }
-
-  Future<void> _processDbReference(List<rfr.Data> data) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final referenceListDao = database.referenceListDao;
-
-    List<ReferenceList> referenceList = data
-        .map((e) => ReferenceList(
-            id: e.id!,
-            taskCode: e.taskCode!,
-            name: e.name!,
-            phoneArea: e.areaPhoneNo!,
-            phoneNumber: e.phoneNo!,
-            remark: e.remark!,
-            value: e.value!))
-        .toList();
-
-    await referenceListDao.insertAllRefrence(referenceList);
-
-    database.close();
-  }
-
-  Future<void> _processDeleteDbReference(List<Data> data) async {
-    final database =
-        await $FloorAppDatabase.databaseBuilder('mobile_survey.db').build();
-    final referenceListDao = database.referenceListDao;
-
-    for (int i = 0; i < data.length; i++) {
-      await referenceListDao.deleteRefrenceById(data[i].code!);
-    }
-    database.close();
   }
 
   @override
@@ -595,25 +359,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               _loadingData(context);
                             }
                             if (state is TaskListLoaded) {
-                              await _processDb(
-                                  state.taskListResponseModel.data!);
                               if (state
                                   .taskListResponseModel.data!.isNotEmpty) {
-                                if (isFirstTime) {
-                                  taskListData.addAll(
-                                      state.taskListResponseModel.data!);
+                                await _insertTask(
+                                        state.taskListResponseModel.data!)
+                                    .then((value) {
                                   questionListBloc.add(QuestionListAttempt(
                                       taskListData[countQuestion].code!));
-                                } else {
-                                  taskListData = state
-                                      .taskListResponseModel.data!
-                                      .where((element) =>
-                                          element.status != 'WAITING')
-                                      .toList();
-                                  await _processDeleteDbQuestion(taskListData);
-                                  questionListBloc.add(QuestionListAttempt(
-                                      taskListData[countQuestion].code!));
-                                }
+                                });
                               } else {
                                 setState(() {
                                   isLoadingListData = false;
@@ -648,26 +401,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               countQuestion++;
                               if (state
                                   .questionListResponseModel.data!.isNotEmpty) {
-                                await _processDbQuestion(
-                                    state.questionListResponseModel.data!);
-                                if (countQuestion < taskListData.length) {
-                                  questionListBloc.add(QuestionListAttempt(
-                                      taskListData[countQuestion].code!));
-                                } else {
-                                  if (!isFirstTime) {
-                                    await _processDeleteDbAttachment(
-                                        taskListData);
+                                await DatabaseHelper.insertQuestion(
+                                        state.questionListResponseModel.data!)
+                                    .then((value) {
+                                  if (countQuestion < taskListData.length) {
+                                    questionListBloc.add(QuestionListAttempt(
+                                        taskListData[countQuestion].code!));
+                                  } else {
+                                    if (!isFirstTime) {
+                                      // await _processDeleteDbAttachment(
+                                      //     taskListData);
+                                    }
+                                    attachmentListBloc.add(
+                                        AttachmentListAttempt(
+                                            taskListData[countAttachment]
+                                                .code!));
                                   }
-                                  attachmentListBloc.add(AttachmentListAttempt(
-                                      taskListData[countAttachment].code!));
-                                }
+                                });
                               } else {
                                 if (countQuestion < taskListData.length) {
                                   questionListBloc.add(QuestionListAttempt(
                                       taskListData[countQuestion].code!));
                                 } else {
                                   if (!isFirstTime) {
-                                    _processDeleteDbAttachment(taskListData);
+                                    // _processDeleteDbAttachment(taskListData);
                                   }
                                   attachmentListBloc.add(AttachmentListAttempt(
                                       taskListData[countAttachment].code!));
@@ -700,27 +457,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               countAttachment++;
                               if (state.attachmentListResponseModel.data!
                                   .isNotEmpty) {
-                                await _processDbAttachment(
-                                    state.attachmentListResponseModel.data!);
-                                if (countAttachment < taskListData.length) {
-                                  attachmentListBloc.add(AttachmentListAttempt(
-                                      taskListData[countAttachment].code!));
-                                } else {
-                                  if (!isFirstTime) {
-                                    await _processDeleteDbReference(
-                                        taskListData);
-                                  }
+                                await DatabaseHelper.insertAttachment(
+                                        state.attachmentListResponseModel.data!)
+                                    .then((value) {
+                                  if (countAttachment < taskListData.length) {
+                                    attachmentListBloc.add(
+                                        AttachmentListAttempt(
+                                            taskListData[countAttachment]
+                                                .code!));
+                                  } else {
+                                    if (!isFirstTime) {
+                                      // await _processDeleteDbReference(
+                                      //     taskListData);
+                                    }
 
-                                  referencelistBloc.add(ReferenceListAttempt(
-                                      taskListData[countReference].code!));
-                                }
+                                    referencelistBloc.add(ReferenceListAttempt(
+                                        taskListData[countReference].code!));
+                                  }
+                                });
                               } else {
                                 if (countAttachment < taskListData.length) {
                                   attachmentListBloc.add(AttachmentListAttempt(
                                       taskListData[countAttachment].code!));
                                 } else {
                                   if (!isFirstTime) {
-                                    _processDeleteDbReference(taskListData);
+                                    // _processDeleteDbReference(taskListData);
                                   }
                                   referencelistBloc.add(ReferenceListAttempt(
                                       taskListData[countReference].code!));
@@ -753,23 +514,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               countReference++;
                               if (state.referenceListResponseModel.data!
                                   .isNotEmpty) {
-                                await _processDbReference(
-                                    state.referenceListResponseModel.data!);
-                                if (countReference < taskListData.length) {
-                                  referencelistBloc.add(ReferenceListAttempt(
-                                      taskListData[countReference].code!));
-                                } else {
-                                  setState(() {
-                                    isLoadingListData = false;
-                                    isFirstTime = false;
-                                  });
-                                  Navigator.pop(context);
-                                }
+                                await DatabaseHelper.insertReference(
+                                        state.referenceListResponseModel.data!)
+                                    .then((value) async {
+                                  if (countReference < taskListData.length) {
+                                    referencelistBloc.add(ReferenceListAttempt(
+                                        taskListData[countReference].code!));
+                                  } else {
+                                    await SharedPrefUtil.saveSharedBool(
+                                        'first', true);
+                                    setState(() {
+                                      isLoadingListData = false;
+                                      isFirstTime = false;
+                                    });
+                                    Navigator.pop(context);
+                                  }
+                                });
                               } else {
                                 if (countReference < taskListData.length) {
                                   referencelistBloc.add(ReferenceListAttempt(
                                       taskListData[countReference].code!));
                                 } else {
+                                  await SharedPrefUtil.saveSharedBool(
+                                      'first', true);
                                   setState(() {
                                     isLoadingListData = false;
                                     isFirstTime = false;
