@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/feature/account/screen/account_screen.dart';
+import 'package:mobile_survey/feature/assignment/screen/assignment_online_screen.dart';
 import 'package:mobile_survey/feature/assignment/screen/assignment_screen.dart';
+import 'package:mobile_survey/feature/home/screen/home_online_screen.dart';
 import 'package:mobile_survey/feature/home/screen/home_screen.dart';
 import 'package:mobile_survey/feature/pending/screen/pending_screen.dart';
 import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
@@ -17,11 +19,11 @@ class TabBarScreen extends StatefulWidget {
 class _TabBarScreenState extends State<TabBarScreen> {
   Widget _getPage(int index) {
     if (index == 0) {
-      return const HomeScreen();
+      return const HomeOnlineScreen();
     }
     if (index == 1) {
       var bottomBarProvider = Provider.of<TabProvider>(context);
-      return AssignmentScreen(tabNumber: bottomBarProvider.tabNumber);
+      return AssignmentOnlineScreen(tabNumber: bottomBarProvider.tabNumber);
     }
     if (index == 2) {
       return const PendingScreen();

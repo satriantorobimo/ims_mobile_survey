@@ -11,7 +11,6 @@ import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:provider/provider.dart';
 import '../../../components/color_comp.dart';
 import '../../../utility/string_content_util.dart';
-import '../../../utility/string_router_util.dart';
 import '../provider/login_provider.dart';
 
 class ButtonSubmitLoginWidget extends StatefulWidget {
@@ -399,8 +398,7 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
                       'username', loginProdiver.username);
                   SharedPrefUtil.saveSharedString(
                       'token', state.loginResponseModel.token!);
-                  Navigator.pushNamedAndRemoveUntil(context,
-                      StringRouterUtil.tabScreenRoute, (route) => false);
+                  Navigator.pop(context);
                 });
               } catch (e) {
                 log(e.toString());

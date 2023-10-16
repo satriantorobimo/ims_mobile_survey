@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:mobile_survey/feature/form_survey_1/screen/form_survey_1_screen.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/args_submit_data_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart';
+import 'package:mobile_survey/feature/form_survey_2/screen/form_survey_2_screen.dart';
 import 'package:mobile_survey/feature/form_survey_2/widget/search_dropdown_widget.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/args_preview_attachment_model.dart';
+import 'package:mobile_survey/feature/form_survey_3/screen/form_survey_3_online_screen.dart';
 import 'package:mobile_survey/feature/form_survey_3/screen/preview_image_asset.dart';
 import 'package:mobile_survey/feature/form_survey_3/screen/preview_image_network.dart';
 import 'package:mobile_survey/feature/form_survey_3/screen/preview_pdf_network.dart';
 import 'package:mobile_survey/feature/form_survey_3/screen/take_picture_screen.dart';
+import 'package:mobile_survey/feature/form_survey_4/screen/form_survey_4_online_screen.dart';
+import 'package:mobile_survey/feature/form_survey_5/screen/form_survey_5_online_screen.dart';
 import 'package:mobile_survey/feature/form_survey_5/screen/form_survey_5_screen.dart';
 import 'package:mobile_survey/feature/inbox/screen/inbox_screen.dart';
 import 'package:mobile_survey/feature/login/screen/login_screen.dart';
@@ -19,7 +23,7 @@ import 'package:mobile_survey/feature/assignment/data/task_list_response_model.d
     as task;
 import 'package:mobile_survey/utility/string_router_util.dart';
 
-import 'feature/form_survey_2/screen/form_survey_2_screen.dart';
+import 'feature/form_survey_2/screen/form_survey_2_online_screen.dart';
 import 'feature/form_survey_3/screen/form_survey_3_screen.dart';
 import 'feature/form_survey_4/screen/form_survey_4_screen.dart';
 
@@ -64,7 +68,8 @@ class Routers {
       case StringRouterUtil.form2ScreenRoute:
         final task.Data taskList = settings.arguments as task.Data;
         return PageRouteBuilder<dynamic>(
-            pageBuilder: (_, __, ___) => FormSurvey2Screen(taskList: taskList),
+            pageBuilder: (_, __, ___) =>
+                FormSurvey2OnlineScreen(taskList: taskList),
             settings: RouteSettings(name: settings.name),
             transitionsBuilder: (_, Animation<double> a, __, Widget c) =>
                 FadeTransition(opacity: a, child: c));
@@ -73,8 +78,8 @@ class Routers {
         final ArgsSubmitDataModel argsSubmitDataModel =
             settings.arguments as ArgsSubmitDataModel;
         return PageRouteBuilder<dynamic>(
-            pageBuilder: (_, __, ___) =>
-                FormSurvey3Screen(argsSubmitDataModel: argsSubmitDataModel),
+            pageBuilder: (_, __, ___) => FormSurvey3OnlineScreen(
+                argsSubmitDataModel: argsSubmitDataModel),
             settings: RouteSettings(name: settings.name),
             transitionsBuilder: (_, Animation<double> a, __, Widget c) =>
                 FadeTransition(opacity: a, child: c));
@@ -121,8 +126,8 @@ class Routers {
         final ArgsSubmitDataModel argsSubmitDataModel =
             settings.arguments as ArgsSubmitDataModel;
         return PageRouteBuilder<dynamic>(
-            pageBuilder: (_, __, ___) =>
-                FormSurvey4Screen(argsSubmitDataModel: argsSubmitDataModel),
+            pageBuilder: (_, __, ___) => FormSurvey4OnlineScreen(
+                argsSubmitDataModel: argsSubmitDataModel),
             settings: RouteSettings(name: settings.name),
             transitionsBuilder: (_, Animation<double> a, __, Widget c) =>
                 FadeTransition(opacity: a, child: c));
@@ -131,8 +136,8 @@ class Routers {
         final ArgsSubmitDataModel argsSubmitDataModel =
             settings.arguments as ArgsSubmitDataModel;
         return PageRouteBuilder<dynamic>(
-            pageBuilder: (_, __, ___) =>
-                FormSurvey5Screen(argsSubmitDataModel: argsSubmitDataModel),
+            pageBuilder: (_, __, ___) => FormSurvey5OnlineScreen(
+                argsSubmitDataModel: argsSubmitDataModel),
             settings: RouteSettings(name: settings.name),
             transitionsBuilder: (_, Animation<double> a, __, Widget c) =>
                 FadeTransition(opacity: a, child: c));
