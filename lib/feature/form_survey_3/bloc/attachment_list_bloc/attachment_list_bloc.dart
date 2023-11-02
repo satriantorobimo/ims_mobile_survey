@@ -26,6 +26,24 @@ class AttachmentListBloc
           emit(AttachmentListException(e.toString()));
         }
       }
+
+      if (event is AttachmentBulkAttempt) {
+        try {
+          emit(AttachmentListLoading());
+          final attachmentListResponseModel =
+              await attachmentListRepo.attemptGetAttachmentBulk(event.listData);
+          if (attachmentListResponseModel!.result == 1) {
+            emit(AttachmentListLoaded(
+                attachmentListResponseModel: attachmentListResponseModel));
+          } else if (attachmentListResponseModel.result == 0) {
+            emit(AttachmentListError(attachmentListResponseModel.message));
+          } else {
+            emit(const AttachmentListException('error'));
+          }
+        } catch (e) {
+          emit(AttachmentListException(e.toString()));
+        }
+      }
     });
   }
 }

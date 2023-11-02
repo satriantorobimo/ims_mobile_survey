@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/feature/login/widget/content_login_widget.dart';
-
-import '../widget/header_login_widget.dart';
+import 'package:mobile_survey/feature/relogin/widget/content_login_widget.dart';
+import 'package:mobile_survey/feature/relogin/widget/header_login_widget.dart';
 
 class ReLoginScreen extends StatefulWidget {
   const ReLoginScreen({super.key});

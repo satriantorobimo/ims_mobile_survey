@@ -49,6 +49,8 @@ class Data {
   String? title;
   String? message;
   String? creDate;
+  String? taskType;
+  String? taskCode;
 
   Data(
       {this.id,
@@ -56,12 +58,16 @@ class Data {
       this.picName,
       this.title,
       this.message,
+      this.taskType,
+      this.taskCode,
       this.creDate});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     picCode = json['pic_code'];
     picName = json['pic_name'];
+    taskType = json['task_type'];
+    taskCode = json['task_code'];
     title = json['title'];
     message = json['message'];
     creDate = json['cre_date'];
@@ -72,6 +78,8 @@ class Data {
     data['id'] = id;
     data['pic_code'] = picCode;
     data['pic_name'] = picName;
+    data['task_type'] = taskType;
+    data['task_code'] = taskCode;
     data['title'] = title;
     data['message'] = message;
     data['cre_date'] = creDate;

@@ -72,8 +72,8 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
             initialEntryMode: DatePickerEntryMode.calendarOnly,
             context: context,
             initialDate: DateTime.now(),
-            firstDate: DateTime(2020),
-            lastDate: DateTime.now().add(const Duration(days: 7)))
+            firstDate: DateTime.now().add(const Duration(days: -30)),
+            lastDate: DateTime.now())
         .then((pickedDate) {
       if (pickedDate == null) {
         return;
@@ -97,7 +97,7 @@ class _FormSurvey1ScreenState extends State<FormSurvey1Screen> {
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form ${widget.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),

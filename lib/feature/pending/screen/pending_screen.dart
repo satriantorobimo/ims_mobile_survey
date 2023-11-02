@@ -21,6 +21,7 @@ import 'package:mobile_survey/feature/form_survey_5/data/pending_summary_data_mo
 import 'package:mobile_survey/feature/pending/widget/button_submit_widget.dart';
 import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/network_util.dart';
+import 'package:mobile_survey/utility/string_router_util.dart';
 import '../../assignment/bloc/update_task_bloc/bloc.dart';
 import '../../assignment/data/task_list_response_model.dart';
 import '../../form_survey_2/bloc/update_question_bloc/bloc.dart';
@@ -338,8 +339,15 @@ class _PendingScreenState extends State<PendingScreen>
                               itemCount: pending.length,
                               padding: const EdgeInsets.all(16),
                               itemBuilder: (context, index) {
-                                return MainContentWidget(
-                                    taskList: pending[index]);
+                                return InkWell(
+                                  onTap: () {
+                                    Navigator.pushNamed(context,
+                                        StringRouterUtil.form1ScreenRoute,
+                                        arguments: pending[index]);
+                                  },
+                                  child: MainContentWidget(
+                                      taskList: pending[index]),
+                                );
                               }),
                         ),
               Positioned(

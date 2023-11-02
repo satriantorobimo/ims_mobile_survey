@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/feature/login/provider/login_provider.dart';
+import 'package:mobile_survey/feature/relogin/provider/login_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../utility/string_content_util.dart';

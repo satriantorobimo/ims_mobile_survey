@@ -1,3 +1,4 @@
+import 'package:mobile_survey/feature/form_survey_2/data/get_question_request_model.dart';
 import 'package:mobile_survey/feature/form_survey_4/data/hubungan_model.dart';
 import 'package:mobile_survey/feature/form_survey_4/data/reference_list_response_model.dart';
 import 'package:mobile_survey/feature/form_survey_4/domain/api/reference_api.dart';
@@ -12,4 +13,8 @@ class ReferenceRepo {
 
   Future<ReferenceListResponseModel?> attemptGetReference(String code) =>
       referenceApi.attemptGetReference(code);
+
+  Future<ReferenceListResponseModel?> attemptGetReferenceBulk(
+          List<GetQuestionReqModel> listData) =>
+      referenceApi.attemptGetReferenceBulk(listData);
 }

@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_survey/feature/assignment/provider/assignment_provider.dart';
 import 'package:mobile_survey/feature/form_survey_2/provider/form_2_provider.dart';
 import 'package:mobile_survey/feature/login/provider/login_provider.dart';
+import 'package:mobile_survey/feature/relogin/provider/login_provider.dart'
+    as relog;
 import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
 import 'package:mobile_survey/router.dart';
 import 'package:mobile_survey/utility/firebase_notification_service.dart';
@@ -39,6 +41,7 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LoginProvider()),
+        ChangeNotifierProvider(create: (_) => relog.LoginProvider()),
         ChangeNotifierProvider(create: (_) => TabProvider()),
         ChangeNotifierProvider(create: (_) => AssignmentProvider()),
         ChangeNotifierProvider(create: (_) => Form2Provider()),

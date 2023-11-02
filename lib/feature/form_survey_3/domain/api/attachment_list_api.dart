@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:mobile_survey/feature/form_survey_2/data/get_question_request_model.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_response_model.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/preview_attachment_response_model.dart';
 import 'package:mobile_survey/feature/form_survey_3/data/upload_attachment_model.dart';
@@ -64,6 +65,39 @@ class AttachmentListApi {
 
     try {
       final res = await http.post(Uri.parse(urlUtil.getUrlAttachment()),
+          body: json, headers: header);
+      if (res.statusCode == 200) {
+        attachmentListResponseModel =
+            AttachmentListResponseModel.fromJson(jsonDecode(res.body));
+        return attachmentListResponseModel;
+      } else if (res.statusCode == 401) {
+        throw 'expired';
+      } else {
+        attachmentListResponseModel =
+            AttachmentListResponseModel.fromJson(jsonDecode(res.body));
+        throw attachmentListResponseModel.message!;
+      }
+    } catch (ex) {
+      throw ex.toString();
+    }
+  }
+
+  Future<AttachmentListResponseModel> attemptGetAttachmentBulk(
+      List<GetQuestionReqModel> listData) async {
+    List a = [];
+    final String? token = await SharedPrefUtil.getSharedString('token');
+    final dynamic ip = await GeneralUtil.getIpAddress();
+    final Map<String, String> header =
+        urlUtil.getHeaderTypeWithToken(token!, ip['ip']!);
+    final Map mapData = {};
+    var jeson = jsonEncode(listData);
+    mapData['p_list_task_code'] = jeson;
+    a.add(mapData);
+
+    final json = jsonEncode(a);
+
+    try {
+      final res = await http.post(Uri.parse(urlUtil.getUrlAttachmentBulk()),
           body: json, headers: header);
       if (res.statusCode == 200) {
         attachmentListResponseModel =

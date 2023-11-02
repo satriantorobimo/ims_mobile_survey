@@ -10,10 +10,17 @@ import 'package:mobile_survey/feature/assignment/bloc/task_list_bloc/bloc.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart';
 import 'package:mobile_survey/feature/assignment/domain/repo/task_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_2/bloc/question_list_bloc/bloc.dart';
+import 'package:mobile_survey/feature/form_survey_2/data/get_question_request_model.dart';
+import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart'
+    as qst;
 import 'package:mobile_survey/feature/form_survey_2/domain/repo/question_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_3/bloc/attachment_list_bloc/bloc.dart';
+import 'package:mobile_survey/feature/form_survey_3/data/attachment_list_response_model.dart'
+    as atc;
 import 'package:mobile_survey/feature/form_survey_3/domain/repo/attachment_list_repo.dart';
 import 'package:mobile_survey/feature/form_survey_4/bloc/reference_list_bloc/bloc.dart';
+import 'package:mobile_survey/feature/form_survey_4/data/reference_list_response_model.dart'
+    as ref;
 import 'package:mobile_survey/feature/form_survey_4/domain/repo/reference_repo.dart';
 import 'package:mobile_survey/feature/home/widget/header_home_widget.dart';
 import 'package:mobile_survey/feature/home/widget/main_content_home_widget.dart';
@@ -44,6 +51,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ReferenceListBloc(referenceRepo: ReferenceRepo());
 
   List<Data> taskListData = [];
+  List<qst.Data> questionListData = [];
+  List<atc.Data> attacmentListData = [];
+  List<ref.Data> reftListData = [];
+  List<GetQuestionReqModel> listTaskCode = [];
+
   late User userData;
   bool isLoading = true,
       isLoadingListData = true,
@@ -51,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       isFirstTime = true;
   int ongoing = 0;
   int returned = 0;
+  int waiting = 0;
   int done = 0;
   int countQuestion = 0, countAttachment = 0, countReference = 0;
   @override
@@ -107,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ongoing = 0;
       returned = 0;
       done = 0;
+      waiting = 0;
       taskListData = [];
     });
     taskListBloc.add(const TaskListAttempt());
@@ -146,6 +160,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         } else if (value[i].status == 'RETURN') {
           setState(() {
             returned++;
+          });
+        } else if (value[i].status == 'WAITING') {
+          setState(() {
+            waiting++;
           });
         }
       }
@@ -305,6 +323,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _insertTask(List<Data> datas) async {
     if (isFirstTime) {
       taskListData.addAll(datas);
+      for (var element in taskListData) {
+        listTaskCode.add(GetQuestionReqModel(taskCode: element.code));
+      }
       await DatabaseHelper.insertTask(datas);
       _sortingData();
     } else {
@@ -314,9 +335,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           tempData.removeWhere((item) => item.code == value[i].code);
         }
         taskListData.addAll(tempData);
+        for (var element in taskListData) {
+          listTaskCode.add(GetQuestionReqModel(taskCode: element.code));
+        }
         await DatabaseHelper.insertTask(tempData);
         _sortingData();
       });
+    }
+  }
+
+  Future<void> _insertData() async {
+    await DatabaseHelper.insertQuestion(questionListData);
+    await DatabaseHelper.insertAttachment(attacmentListData);
+    if (reftListData.isNotEmpty) {
+      await DatabaseHelper.insertReference(reftListData);
     }
   }
 
@@ -326,6 +358,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       body: RefreshIndicator(
         onRefresh: _pullRefresh,
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Container(
             width: MediaQuery.of(context).size.width,
             decoration: const BoxDecoration(
@@ -364,8 +397,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 await _insertTask(
                                         state.taskListResponseModel.data!)
                                     .then((value) {
-                                  questionListBloc.add(QuestionListAttempt(
-                                      taskListData[countQuestion].code!));
+                                  questionListBloc
+                                      .add(QuestionBulkAttempt(listTaskCode));
                                 });
                               } else {
                                 setState(() {
@@ -398,38 +431,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           bloc: questionListBloc,
                           listener: (_, QuestionListState state) async {
                             if (state is QuestionListLoaded) {
-                              countQuestion++;
                               if (state
                                   .questionListResponseModel.data!.isNotEmpty) {
-                                await DatabaseHelper.insertQuestion(
-                                        state.questionListResponseModel.data!)
-                                    .then((value) {
-                                  if (countQuestion < taskListData.length) {
-                                    questionListBloc.add(QuestionListAttempt(
-                                        taskListData[countQuestion].code!));
-                                  } else {
-                                    if (!isFirstTime) {
-                                      // await _processDeleteDbAttachment(
-                                      //     taskListData);
-                                    }
-                                    attachmentListBloc.add(
-                                        AttachmentListAttempt(
-                                            taskListData[countAttachment]
-                                                .code!));
-                                  }
-                                });
-                              } else {
-                                if (countQuestion < taskListData.length) {
-                                  questionListBloc.add(QuestionListAttempt(
-                                      taskListData[countQuestion].code!));
-                                } else {
-                                  if (!isFirstTime) {
-                                    // _processDeleteDbAttachment(taskListData);
-                                  }
-                                  attachmentListBloc.add(AttachmentListAttempt(
-                                      taskListData[countAttachment].code!));
-                                }
+                                questionListData.addAll(
+                                    state.questionListResponseModel.data!);
                               }
+
+                              attachmentListBloc
+                                  .add(AttachmentBulkAttempt(listTaskCode));
                             }
                             if (state is QuestionListError) {
                               setState(() {
@@ -454,39 +463,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           bloc: attachmentListBloc,
                           listener: (_, AttachmentListState state) async {
                             if (state is AttachmentListLoaded) {
-                              countAttachment++;
                               if (state.attachmentListResponseModel.data!
                                   .isNotEmpty) {
-                                await DatabaseHelper.insertAttachment(
-                                        state.attachmentListResponseModel.data!)
-                                    .then((value) {
-                                  if (countAttachment < taskListData.length) {
-                                    attachmentListBloc.add(
-                                        AttachmentListAttempt(
-                                            taskListData[countAttachment]
-                                                .code!));
-                                  } else {
-                                    if (!isFirstTime) {
-                                      // await _processDeleteDbReference(
-                                      //     taskListData);
-                                    }
-
-                                    referencelistBloc.add(ReferenceListAttempt(
-                                        taskListData[countReference].code!));
-                                  }
-                                });
-                              } else {
-                                if (countAttachment < taskListData.length) {
-                                  attachmentListBloc.add(AttachmentListAttempt(
-                                      taskListData[countAttachment].code!));
-                                } else {
-                                  if (!isFirstTime) {
-                                    // _processDeleteDbReference(taskListData);
-                                  }
-                                  referencelistBloc.add(ReferenceListAttempt(
-                                      taskListData[countReference].code!));
-                                }
+                                attacmentListData.addAll(
+                                    state.attachmentListResponseModel.data!);
                               }
+                              referencelistBloc
+                                  .add(ReferenceBulkAttempt(listTaskCode));
                             }
                             if (state is AttachmentListError) {
                               setState(() {
@@ -511,39 +494,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           bloc: referencelistBloc,
                           listener: (_, ReferenceListState state) async {
                             if (state is ReferenceListLoaded) {
-                              countReference++;
                               if (state.referenceListResponseModel.data!
                                   .isNotEmpty) {
-                                await DatabaseHelper.insertReference(
-                                        state.referenceListResponseModel.data!)
-                                    .then((value) async {
-                                  if (countReference < taskListData.length) {
-                                    referencelistBloc.add(ReferenceListAttempt(
-                                        taskListData[countReference].code!));
-                                  } else {
-                                    await SharedPrefUtil.saveSharedBool(
-                                        'first', true);
-                                    setState(() {
-                                      isLoadingListData = false;
-                                      isFirstTime = false;
-                                    });
-                                    Navigator.pop(context);
-                                  }
-                                });
-                              } else {
-                                if (countReference < taskListData.length) {
-                                  referencelistBloc.add(ReferenceListAttempt(
-                                      taskListData[countReference].code!));
-                                } else {
-                                  await SharedPrefUtil.saveSharedBool(
-                                      'first', true);
-                                  setState(() {
-                                    isLoadingListData = false;
-                                    isFirstTime = false;
-                                  });
-                                  Navigator.pop(context);
-                                }
+                                reftListData.addAll(
+                                    state.referenceListResponseModel.data!);
+                                await _insertData();
                               }
+
+                              await SharedPrefUtil.saveSharedBool(
+                                  'first', true);
+
+                              setState(() {
+                                isLoadingListData = false;
+                                isFirstTime = false;
+                              });
+                              Navigator.pop(context);
                             }
                             if (state is ReferenceListError) {
                               setState(() {
@@ -576,6 +541,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   done: done,
                                   ongoing: ongoing,
                                   returned: returned,
+                                  waiting: waiting,
                                 )),
                 ],
               ),

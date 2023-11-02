@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/feature/relogin/provider/login_provider.dart';
 import 'package:mobile_survey/utility/string_content_util.dart';
 import 'package:provider/provider.dart';
-
-import '../provider/login_provider.dart';
 
 class PasswordLoginWidget extends StatefulWidget {
   const PasswordLoginWidget({

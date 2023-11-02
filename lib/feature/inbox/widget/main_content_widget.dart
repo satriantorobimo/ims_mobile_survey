@@ -53,7 +53,7 @@ class MainContentWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(5),
                 child: Center(
                   child: Text(
-                    data!.picName!,
+                    data!.taskType!,
                     style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,

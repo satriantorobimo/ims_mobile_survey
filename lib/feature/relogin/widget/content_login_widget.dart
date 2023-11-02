@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_survey/feature/login/widget/button_submit_login_widget.dart';
-import 'package:mobile_survey/feature/login/widget/username_login_widget.dart';
-import 'package:mobile_survey/feature/login/widget/password_login_widget.dart';
+import 'package:mobile_survey/feature/relogin/widget/button_submit_login_widget.dart';
+import 'package:mobile_survey/feature/relogin/widget/username_login_widget.dart';
+import 'package:mobile_survey/feature/relogin/widget/password_login_widget.dart';
 
 import '../../../components/color_comp.dart';
 import '../../../utility/string_content_util.dart';

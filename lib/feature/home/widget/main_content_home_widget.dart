@@ -8,10 +8,12 @@ class MainContentHomeWidget extends StatelessWidget {
       {super.key,
       required this.ongoing,
       required this.returned,
-      required this.done});
+      required this.done,
+      required this.waiting});
   final int ongoing;
   final int returned;
   final int done;
+  final int waiting;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +61,58 @@ class MainContentHomeWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$ongoing Survey',
+                    '$ongoing Task',
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black),
+                  )
+                ],
+              )),
+        ),
+        const SizedBox(height: 16),
+        InkWell(
+          onTap: () {
+            var bottomBarProvider =
+                Provider.of<TabProvider>(context, listen: false);
+            bottomBarProvider.setPage(1);
+            bottomBarProvider.setTab(0);
+          },
+          child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: primaryColor.withOpacity(0.5),
+              ),
+              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 40.0,
+                    width: 40.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white.withOpacity(0.3),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/icon/assignment_active_icon.png',
+                        width: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Waiting',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: primaryColor),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$waiting Task',
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -110,7 +163,7 @@ class MainContentHomeWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$returned Survey',
+                    '$returned Task',
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -161,7 +214,7 @@ class MainContentHomeWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$done Survey',
+                    '$done Task',
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,

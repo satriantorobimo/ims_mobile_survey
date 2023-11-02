@@ -7,6 +7,7 @@ import 'package:mobile_survey/feature/login/data/login_request_model.dart';
 import 'package:mobile_survey/feature/login/data/login_response_model.dart';
 import 'package:mobile_survey/feature/login/domain/repo/login_repo.dart';
 import 'package:mobile_survey/utility/database_helper.dart';
+import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/shared_pref_util.dart';
 import 'package:provider/provider.dart';
 import '../../../components/color_comp.dart';
@@ -399,8 +400,7 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
                       'username', loginProdiver.username);
                   SharedPrefUtil.saveSharedString(
                       'token', state.loginResponseModel.token!);
-                  Navigator.pushNamedAndRemoveUntil(context,
-                      StringRouterUtil.tabScreenRoute, (route) => false);
+                  Navigator.pop(context, true);
                 });
               } catch (e) {
                 log(e.toString());
@@ -435,9 +435,11 @@ class _ButtonSubmitLoginWidgetState extends State<ButtonSubmitLoginWidget>
         if (loginProdiver.username.isEmpty || loginProdiver.password.isEmpty) {
           _userPassNotFilled();
         } else {
-          loginBloc.add(LoginAttempt(
-              loginRequestModel: LoginRequestModel(
-                  loginProdiver.username, loginProdiver.password, 'abc123')));
+          GeneralUtil.getDeviceId().then((value) {
+            loginBloc.add(LoginAttempt(
+                loginRequestModel: LoginRequestModel(loginProdiver.username,
+                    loginProdiver.password, 'TP1A.220624.014')));
+          });
         }
       },
       child: Container(

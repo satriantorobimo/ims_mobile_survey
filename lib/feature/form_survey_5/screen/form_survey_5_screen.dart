@@ -15,6 +15,7 @@ import 'package:mobile_survey/feature/form_survey_3/domain/repo/attachment_list_
 import 'package:mobile_survey/feature/form_survey_4/bloc/reference_bloc/bloc.dart';
 import 'package:mobile_survey/feature/form_survey_4/domain/repo/reference_repo.dart';
 import 'package:mobile_survey/feature/form_survey_4/provider/form_survey_4_provider.dart';
+import 'package:mobile_survey/feature/tab/provider/tab_provider.dart';
 import 'package:mobile_survey/utility/database_helper.dart';
 import 'package:mobile_survey/utility/general_util.dart';
 import 'package:mobile_survey/utility/network_util.dart';
@@ -38,7 +39,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
   final TextEditingController _notesCtrl = TextEditingController();
   final TextEditingController _sesuaiCtrl = TextEditingController();
   final TextEditingController _valueCtrl = TextEditingController();
-
+  final _focusNode = FocusNode();
   int questionCount = 0;
   int attachmentCount = 0;
   int refCount = 0;
@@ -179,7 +180,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
   void _submit() {
     showDialog(
       useSafeArea: true,
-      barrierDismissible: true,
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -708,7 +709,7 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
@@ -727,103 +728,93 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
           )
         ],
       ),
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: <Color>[Colors.white, Color(0xFFf9f9f9)],
+      body: GestureDetector(
+        onTap: () => _focusNode.unfocus(),
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: <Color>[Colors.white, Color(0xFFf9f9f9)],
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            MultiBlocListener(
-              listeners: [
-                BlocListener(
-                  bloc: updateQuestionBloc,
-                  listener: (_, UpdateQuestionState state) async {
-                    if (state is UpdateQuestionLoading) {
-                      log('Update Question $questionCount / ${widget.argsSubmitDataModel.answerResults.length}  Start');
-                    }
-                    if (state is UpdateQuestionLoaded) {
-                      log('Update Question $questionCount / ${widget.argsSubmitDataModel.answerResults.length}  Done');
-                      questionCount++;
-                      if (questionCount <
-                          widget.argsSubmitDataModel.answerResults.length) {
-                        updateQuestionBloc.add(UpdateQuestionAttempt(widget
-                            .argsSubmitDataModel.answerResults[questionCount]));
-                      } else {
-                        await DatabaseHelper.updateQuestion(
-                            widget.argsSubmitDataModel.answerResults);
-                        if (widget
-                            .argsSubmitDataModel.uploadAttachment.isNotEmpty) {
-                          uploadAttachmentBloc.add(UploadAttachmentAttempt(
-                              widget.argsSubmitDataModel
-                                  .uploadAttachment[attachmentCount]));
-                        } else if (widget
-                            .argsSubmitDataModel.refrence.isNotEmpty) {
-                          referenceBloc.add(InsertReferenceAttempt(
-                              widget.argsSubmitDataModel.refrence[refCount]));
-                        } else {
-                          updateTaskBloc.add(UpdateTaskAttempt(
-                              widget.argsSubmitDataModel.taskList.code!,
-                              widget.argsSubmitDataModel.taskList.type!,
-                              _notesCtrl.text,
-                              _valueCtrl.text == ""
-                                  ? 0
-                                  : double.parse(_valueCtrl.text),
-                              _sesuaiCtrl.text,
-                              widget.argsSubmitDataModel.taskList.date!));
-                        }
+          child: Stack(
+            children: [
+              MultiBlocListener(
+                listeners: [
+                  BlocListener(
+                    bloc: updateQuestionBloc,
+                    listener: (_, UpdateQuestionState state) async {
+                      if (state is UpdateQuestionLoading) {
+                        log('Update Question $questionCount / ${widget.argsSubmitDataModel.answerResults.length}  Start');
                       }
-                    }
-                    if (state is UpdateQuestionError) {
-                      Navigator.pop(context);
-                    }
-                    if (state is UpdateQuestionException) {
-                      if (state.error == 'expired') {
-                        // // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                        _sessionExpired();
-                      }
-                    }
-                  },
-                ),
-                BlocListener(
-                  bloc: uploadAttachmentBloc,
-                  listener: (_, UploadAttachmentState state) async {
-                    if (state is UploadAttachmentLoading) {
-                      log('Insert Attachment $attachmentCount / ${widget.argsSubmitDataModel.uploadAttachment.length}  Start');
-                    }
-                    if (state is UploadAttachmentLoaded) {
-                      log('Insert Attachment $attachmentCount / ${widget.argsSubmitDataModel.uploadAttachment.length}  Done');
-                      attachmentCount++;
-                      if (attachmentCount <
-                          widget.argsSubmitDataModel.uploadAttachment.length) {
-                        uploadAttachmentBloc.add(UploadAttachmentAttempt(widget
-                            .argsSubmitDataModel
-                            .uploadAttachment[attachmentCount]));
-                      } else {
-                        await DatabaseHelper.updateAttachment(
-                            widget.argsSubmitDataModel.uploadAttachment);
-                        if (widget.argsSubmitDataModel.taskList.type ==
-                            'SURVEY') {
-                          updateTaskBloc.add(UpdateTaskAttempt(
-                              widget.argsSubmitDataModel.taskList.code!,
-                              widget.argsSubmitDataModel.taskList.type!,
-                              _notesCtrl.text,
-                              _valueCtrl.text.isEmpty
-                                  ? 0.0
-                                  : double.parse(_valueCtrl.text),
-                              _sesuaiCtrl.text,
-                              widget.argsSubmitDataModel.taskList.date!));
+                      if (state is UpdateQuestionLoaded) {
+                        log('Update Question $questionCount / ${widget.argsSubmitDataModel.answerResults.length}  Done');
+                        questionCount++;
+                        if (questionCount <
+                            widget.argsSubmitDataModel.answerResults.length) {
+                          updateQuestionBloc.add(UpdateQuestionAttempt(widget
+                              .argsSubmitDataModel
+                              .answerResults[questionCount]));
                         } else {
-                          if (widget.argsSubmitDataModel.refrence.isNotEmpty) {
+                          await DatabaseHelper.updateQuestion(
+                              widget.argsSubmitDataModel.answerResults);
+                          if (widget.argsSubmitDataModel.uploadAttachment
+                              .isNotEmpty) {
+                            uploadAttachmentBloc.add(UploadAttachmentAttempt(
+                                widget.argsSubmitDataModel
+                                    .uploadAttachment[attachmentCount]));
+                          } else if (widget
+                              .argsSubmitDataModel.refrence.isNotEmpty) {
                             referenceBloc.add(InsertReferenceAttempt(
                                 widget.argsSubmitDataModel.refrence[refCount]));
                           } else {
+                            updateTaskBloc.add(UpdateTaskAttempt(
+                                widget.argsSubmitDataModel.taskList.code!,
+                                widget.argsSubmitDataModel.taskList.type!,
+                                _notesCtrl.text,
+                                _valueCtrl.text == ""
+                                    ? 0
+                                    : double.parse(_valueCtrl.text),
+                                _sesuaiCtrl.text,
+                                widget.argsSubmitDataModel.taskList.date!));
+                          }
+                        }
+                      }
+                      if (state is UpdateQuestionError) {
+                        Navigator.pop(context);
+                      }
+                      if (state is UpdateQuestionException) {
+                        if (state.error == 'expired') {
+                          // // ignore: use_build_context_synchronously
+                          Navigator.pop(context);
+                          _sessionExpired();
+                        }
+                      }
+                    },
+                  ),
+                  BlocListener(
+                    bloc: uploadAttachmentBloc,
+                    listener: (_, UploadAttachmentState state) async {
+                      if (state is UploadAttachmentLoading) {
+                        log('Insert Attachment $attachmentCount / ${widget.argsSubmitDataModel.uploadAttachment.length}  Start');
+                      }
+                      if (state is UploadAttachmentLoaded) {
+                        log('Insert Attachment $attachmentCount / ${widget.argsSubmitDataModel.uploadAttachment.length}  Done');
+                        attachmentCount++;
+                        if (attachmentCount <
+                            widget
+                                .argsSubmitDataModel.uploadAttachment.length) {
+                          uploadAttachmentBloc.add(UploadAttachmentAttempt(
+                              widget.argsSubmitDataModel
+                                  .uploadAttachment[attachmentCount]));
+                        } else {
+                          await DatabaseHelper.updateAttachment(
+                              widget.argsSubmitDataModel.uploadAttachment);
+                          if (widget.argsSubmitDataModel.taskList.type ==
+                              'SURVEY') {
                             updateTaskBloc.add(UpdateTaskAttempt(
                                 widget.argsSubmitDataModel.taskList.code!,
                                 widget.argsSubmitDataModel.taskList.type!,
@@ -833,277 +824,359 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                                     : double.parse(_valueCtrl.text),
                                 _sesuaiCtrl.text,
                                 widget.argsSubmitDataModel.taskList.date!));
+                          } else {
+                            if (widget
+                                .argsSubmitDataModel.refrence.isNotEmpty) {
+                              referenceBloc.add(InsertReferenceAttempt(widget
+                                  .argsSubmitDataModel.refrence[refCount]));
+                            } else {
+                              updateTaskBloc.add(UpdateTaskAttempt(
+                                  widget.argsSubmitDataModel.taskList.code!,
+                                  widget.argsSubmitDataModel.taskList.type!,
+                                  _notesCtrl.text,
+                                  _valueCtrl.text.isEmpty
+                                      ? 0.0
+                                      : double.parse(_valueCtrl.text),
+                                  _sesuaiCtrl.text,
+                                  widget.argsSubmitDataModel.taskList.date!));
+                            }
                           }
                         }
                       }
-                    }
-                    if (state is UploadAttachmentError) {
-                      Navigator.pop(context);
-                    }
-                    if (state is UploadAttachmentException) {
-                      // if (state.error == 'expired') {
-                      //   // // ignore: use_build_context_synchronously
-                      //   Navigator.pop(context);
-                      //   // _sessionExpired();
-                      // }
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
-                BlocListener(
-                  bloc: referenceBloc,
-                  listener: (_, ReferenceState state) async {
-                    if (state is ReferenceLoading) {
-                      log('Insert Ref $refCount / ${widget.argsSubmitDataModel.refrence.length}  Start');
-                    }
-                    if (state is ReferenceLoaded) {
-                      log('Insert Ref $refCount / ${widget.argsSubmitDataModel.refrence.length}  Done');
-                      refCount++;
-                      if (refCount <
-                          widget.argsSubmitDataModel.refrence.length) {
-                        referenceBloc.add(InsertReferenceAttempt(
-                            widget.argsSubmitDataModel.refrence[refCount]));
-                      } else {
-                        await DatabaseHelper.updateRefrence(
-                            widget.argsSubmitDataModel.refrence);
-                        updateTaskBloc.add(UpdateTaskAttempt(
-                            widget.argsSubmitDataModel.taskList.code!,
-                            widget.argsSubmitDataModel.taskList.type!,
-                            _notesCtrl.text,
-                            _valueCtrl.text.isEmpty
+                      if (state is UploadAttachmentError) {
+                        Navigator.pop(context);
+                      }
+                      if (state is UploadAttachmentException) {
+                        // if (state.error == 'expired') {
+                        //   // // ignore: use_build_context_synchronously
+                        //   Navigator.pop(context);
+                        //   // _sessionExpired();
+                        // }
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                  BlocListener(
+                    bloc: referenceBloc,
+                    listener: (_, ReferenceState state) async {
+                      if (state is ReferenceLoading) {
+                        log('Insert Ref $refCount / ${widget.argsSubmitDataModel.refrence.length}  Start');
+                      }
+                      if (state is ReferenceLoaded) {
+                        log('Insert Ref $refCount / ${widget.argsSubmitDataModel.refrence.length}  Done');
+                        refCount++;
+                        if (refCount <
+                            widget.argsSubmitDataModel.refrence.length) {
+                          referenceBloc.add(InsertReferenceAttempt(
+                              widget.argsSubmitDataModel.refrence[refCount]));
+                        } else {
+                          await DatabaseHelper.updateRefrence(
+                              widget.argsSubmitDataModel.refrence);
+                          updateTaskBloc.add(UpdateTaskAttempt(
+                              widget.argsSubmitDataModel.taskList.code!,
+                              widget.argsSubmitDataModel.taskList.type!,
+                              _notesCtrl.text,
+                              _valueCtrl.text.isEmpty
+                                  ? 0.0
+                                  : double.parse(_valueCtrl.text),
+                              _sesuaiCtrl.text,
+                              widget.argsSubmitDataModel.taskList.date!));
+                        }
+                      }
+                      if (state is ReferenceError) {
+                        Navigator.pop(context);
+                      }
+                      if (state is ReferenceException) {
+                        // if (state.error == 'expired') {
+                        //   // // ignore: use_build_context_synchronously
+                        //   Navigator.pop(context);
+                        //   // _sessionExpired();
+                        // }
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                  BlocListener(
+                    bloc: updateTaskBloc,
+                    listener: (_, UpdateTaskState state) async {
+                      if (state is UpdateTaskLoading) {
+                        log('Update Task Start');
+                      }
+                      if (state is UpdateTaskLoaded) {
+                        log('Update Task Done');
+
+                        await DatabaseHelper.updateTask(
+                            date: widget.argsSubmitDataModel.taskList.date!,
+                            taskCode: widget.argsSubmitDataModel.taskList.code!,
+                            remark: _notesCtrl.text,
+                            notes: _sesuaiCtrl.text,
+                            value: _valueCtrl.text.isEmpty
                                 ? 0.0
                                 : double.parse(_valueCtrl.text),
-                            _sesuaiCtrl.text,
-                            widget.argsSubmitDataModel.taskList.date!));
+                            status: 'WAITING');
+                        _goHome();
                       }
-                    }
-                    if (state is ReferenceError) {
-                      Navigator.pop(context);
-                    }
-                    if (state is ReferenceException) {
-                      // if (state.error == 'expired') {
-                      //   // // ignore: use_build_context_synchronously
-                      //   Navigator.pop(context);
-                      //   // _sessionExpired();
-                      // }
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
-                BlocListener(
-                  bloc: updateTaskBloc,
-                  listener: (_, UpdateTaskState state) async {
-                    if (state is UpdateTaskLoading) {
-                      log('Update Task Start');
-                    }
-                    if (state is UpdateTaskLoaded) {
-                      log('Update Task Done');
-
-                      await DatabaseHelper.updateTask(
-                          date: widget.argsSubmitDataModel.taskList.date!,
-                          taskCode: widget.argsSubmitDataModel.taskList.code!,
-                          remark: _notesCtrl.text,
-                          notes: _sesuaiCtrl.text,
-                          value: _valueCtrl.text.isEmpty
-                              ? 0.0
-                              : double.parse(_valueCtrl.text),
-                          status: 'WAITING');
-                      _goHome();
-                    }
-                    if (state is UpdateTaskError) {
-                      Navigator.pop(context);
-                    }
-                    if (state is UpdateTaskException) {
-                      // if (state.error == 'expired') {
-                      //   // // ignore: use_build_context_synchronously
-                      //   Navigator.pop(context);
-                      //   // _sessionExpired();
-                      // }
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
-              ],
-              child: mainContent(),
-            ),
-            Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                    color: const Color(0xFFf9f9f9),
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.45,
-                          height: 45,
-                          child: OutlinedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              // ignore: sort_child_properties_last
-                              child: const Text(
-                                'Sebelumnya',
-                                style: TextStyle(
-                                    color: primaryColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                              style: ButtonStyle(
-                                shape: MaterialStateProperty.all(
-                                    RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(24.0))),
-                                side:
-                                    MaterialStateProperty.all(const BorderSide(
-                                  color: primaryColor,
-                                )),
-                              )),
-                        ),
-                        InkWell(
-                          onTap: widget.argsSubmitDataModel.taskList.status ==
-                                      'WAITING' ||
-                                  widget.argsSubmitDataModel.taskList.status ==
-                                      'DONE'
-                              ? null
-                              : () async {
-                                  if (widget
-                                          .argsSubmitDataModel.taskList.type ==
-                                      'SURVEY') {
-                                    if (_notesCtrl.text.isEmpty ||
-                                        _notesCtrl.text == '' &&
-                                            _sesuaiCtrl.text.isEmpty ||
-                                        _sesuaiCtrl.text == '') {
-                                      _notComplete();
-                                    } else {
-                                      NetworkInfo(internetConnectionChecker)
-                                          .isConnected
-                                          .then((value) {
-                                        if (value) {
-                                          _submit();
-                                          if (widget.argsSubmitDataModel
-                                              .answerResults.isNotEmpty) {
-                                            updateQuestionBloc.add(
-                                                UpdateQuestionAttempt(widget
-                                                        .argsSubmitDataModel
-                                                        .answerResults[
-                                                    questionCount]));
-                                          } else if (widget.argsSubmitDataModel
-                                              .uploadAttachment.isNotEmpty) {
-                                            uploadAttachmentBloc.add(
-                                                UploadAttachmentAttempt(widget
-                                                        .argsSubmitDataModel
-                                                        .uploadAttachment[
-                                                    attachmentCount]));
-                                          } else if (widget.argsSubmitDataModel
-                                              .refrence.isNotEmpty) {
-                                            referenceBloc.add(
-                                                InsertReferenceAttempt(widget
-                                                    .argsSubmitDataModel
-                                                    .refrence[refCount]));
-                                          } else {
-                                            updateTaskBloc.add(
-                                                UpdateTaskAttempt(
-                                                    widget.argsSubmitDataModel
-                                                        .taskList.code!,
-                                                    widget.argsSubmitDataModel
-                                                        .taskList.type!,
-                                                    _notesCtrl.text,
-                                                    _valueCtrl.text == ""
-                                                        ? 0
-                                                        : double.parse(
-                                                            _valueCtrl.text),
-                                                    _sesuaiCtrl.text,
-                                                    widget.argsSubmitDataModel
-                                                        .taskList.date!));
-                                          }
-                                        } else {
-                                          _warningOffline();
-                                        }
-                                      });
-                                    }
-                                  } else {
-                                    if (_notesCtrl.text.isEmpty ||
-                                        _notesCtrl.text == '' &&
-                                            _valueCtrl.text.isEmpty ||
-                                        _valueCtrl.text == '') {
-                                      _notComplete();
-                                    } else {
-                                      NetworkInfo(internetConnectionChecker)
-                                          .isConnected
-                                          .then((value) {
-                                        if (value) {
-                                          _submit();
-                                          if (widget.argsSubmitDataModel
-                                              .answerResults.isNotEmpty) {
-                                            updateQuestionBloc.add(
-                                                UpdateQuestionAttempt(widget
-                                                        .argsSubmitDataModel
-                                                        .answerResults[
-                                                    questionCount]));
-                                          } else if (widget.argsSubmitDataModel
-                                              .uploadAttachment.isNotEmpty) {
-                                            uploadAttachmentBloc.add(
-                                                UploadAttachmentAttempt(widget
-                                                        .argsSubmitDataModel
-                                                        .uploadAttachment[
-                                                    attachmentCount]));
-                                          } else if (widget.argsSubmitDataModel
-                                              .refrence.isNotEmpty) {
-                                            referenceBloc.add(
-                                                InsertReferenceAttempt(widget
-                                                    .argsSubmitDataModel
-                                                    .refrence[refCount]));
-                                          } else {
-                                            updateTaskBloc.add(
-                                                UpdateTaskAttempt(
-                                                    widget.argsSubmitDataModel
-                                                        .taskList.code!,
-                                                    widget.argsSubmitDataModel
-                                                        .taskList.type!,
-                                                    _notesCtrl.text,
-                                                    _valueCtrl.text == ""
-                                                        ? 0
-                                                        : double.parse(
-                                                            _valueCtrl.text),
-                                                    _sesuaiCtrl.text,
-                                                    widget.argsSubmitDataModel
-                                                        .taskList.date!));
-                                          }
-                                        } else {
-                                          _warningOffline();
-                                        }
-                                      });
-                                    }
-                                  }
-                                },
-                          child: Container(
+                      if (state is UpdateTaskError) {
+                        Navigator.pop(context);
+                      }
+                      if (state is UpdateTaskException) {
+                        // if (state.error == 'expired') {
+                        //   // // ignore: use_build_context_synchronously
+                        //   Navigator.pop(context);
+                        //   // _sessionExpired();
+                        // }
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                ],
+                child: mainContent(),
+              ),
+              Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                      color: const Color(0xFFf9f9f9),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SizedBox(
                             width: MediaQuery.of(context).size.width * 0.45,
                             height: 45,
-                            decoration: BoxDecoration(
-                              color:
-                                  widget.argsSubmitDataModel.taskList.status ==
-                                              'WAITING' ||
-                                          widget.argsSubmitDataModel.taskList
-                                                  .status ==
-                                              'DONE'
-                                      ? Colors.grey
-                                      : primaryColor,
-                              borderRadius: BorderRadius.circular(22),
-                            ),
-                            child: const Center(
-                                child: Text('Submit',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600))),
+                            child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                // ignore: sort_child_properties_last
+                                child: const Text(
+                                  'Sebelumnya',
+                                  style: TextStyle(
+                                      color: primaryColor,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all(
+                                      RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(24.0))),
+                                  side: MaterialStateProperty.all(
+                                      const BorderSide(
+                                    color: primaryColor,
+                                  )),
+                                )),
                           ),
-                        ),
-                      ],
-                    )))
-          ],
+                          widget.argsSubmitDataModel.taskList.status ==
+                                      'WAITING' ||
+                                  widget.argsSubmitDataModel.taskList.status ==
+                                      'DONE' ||
+                                  widget.argsSubmitDataModel.taskList.status ==
+                                      'PENDING'
+                              ? InkWell(
+                                  onTap: () async {
+                                    var bottomBarProvider =
+                                        Provider.of<TabProvider>(context,
+                                            listen: false);
+                                    if (widget.argsSubmitDataModel.taskList
+                                            .status ==
+                                        'PENDING') {
+                                      bottomBarProvider.setPage(2);
+                                      Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          StringRouterUtil.tabScreenRoute,
+                                          (route) => false);
+                                    } else {
+                                      bottomBarProvider.setPage(1);
+                                      bottomBarProvider.setTab(widget
+                                                  .argsSubmitDataModel
+                                                  .taskList
+                                                  .status ==
+                                              'WAITING'
+                                          ? 1
+                                          : 3);
+                                      Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          StringRouterUtil.tabScreenRoute,
+                                          (route) => false);
+                                    }
+                                  },
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.45,
+                                    height: 45,
+                                    decoration: BoxDecoration(
+                                      color: primaryColor,
+                                      borderRadius: BorderRadius.circular(22),
+                                    ),
+                                    child: const Center(
+                                        child: Text('Close',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600))),
+                                  ),
+                                )
+                              : InkWell(
+                                  onTap: () async {
+                                    // await DatabaseHelper.updateQuestion(widget
+                                    //     .argsSubmitDataModel.answerResults);
+                                    // await DatabaseHelper.updateAttachment(widget
+                                    //     .argsSubmitDataModel.uploadAttachment);
+                                    // await DatabaseHelper.updateRefrence(
+                                    //     widget.argsSubmitDataModel.refrence);
+                                    // await DatabaseHelper.updateTask(
+                                    //     date: widget
+                                    //         .argsSubmitDataModel.taskList.date!,
+                                    //     taskCode: widget
+                                    //         .argsSubmitDataModel.taskList.code!,
+                                    //     remark: _notesCtrl.text,
+                                    //     notes: _sesuaiCtrl.text,
+                                    //     value: _valueCtrl.text.isEmpty
+                                    //         ? 0.0
+                                    //         : double.parse(_valueCtrl.text),
+                                    //     status: 'RETURN');
+                                    // _goHome();
+
+                                    if (widget.argsSubmitDataModel.taskList
+                                            .type ==
+                                        'SURVEY') {
+                                      if (_notesCtrl.text.isEmpty ||
+                                          _notesCtrl.text == '' &&
+                                              _sesuaiCtrl.text.isEmpty ||
+                                          _sesuaiCtrl.text == '') {
+                                        _notComplete();
+                                      } else {
+                                        NetworkInfo(internetConnectionChecker)
+                                            .isConnected
+                                            .then((value) {
+                                          if (value) {
+                                            _submit();
+                                            if (widget.argsSubmitDataModel
+                                                .answerResults.isNotEmpty) {
+                                              updateQuestionBloc.add(
+                                                  UpdateQuestionAttempt(widget
+                                                          .argsSubmitDataModel
+                                                          .answerResults[
+                                                      questionCount]));
+                                            } else if (widget
+                                                .argsSubmitDataModel
+                                                .uploadAttachment
+                                                .isNotEmpty) {
+                                              uploadAttachmentBloc.add(
+                                                  UploadAttachmentAttempt(widget
+                                                          .argsSubmitDataModel
+                                                          .uploadAttachment[
+                                                      attachmentCount]));
+                                            } else if (widget
+                                                .argsSubmitDataModel
+                                                .refrence
+                                                .isNotEmpty) {
+                                              referenceBloc.add(
+                                                  InsertReferenceAttempt(widget
+                                                      .argsSubmitDataModel
+                                                      .refrence[refCount]));
+                                            } else {
+                                              updateTaskBloc.add(
+                                                  UpdateTaskAttempt(
+                                                      widget.argsSubmitDataModel
+                                                          .taskList.code!,
+                                                      widget.argsSubmitDataModel
+                                                          .taskList.type!,
+                                                      _notesCtrl.text,
+                                                      _valueCtrl.text == ""
+                                                          ? 0
+                                                          : double.parse(
+                                                              _valueCtrl.text),
+                                                      _sesuaiCtrl.text,
+                                                      widget.argsSubmitDataModel
+                                                          .taskList.date!));
+                                            }
+                                          } else {
+                                            _warningOffline();
+                                          }
+                                        });
+                                      }
+                                    } else {
+                                      if (_notesCtrl.text.isEmpty ||
+                                          _notesCtrl.text == '' &&
+                                              _valueCtrl.text.isEmpty ||
+                                          _valueCtrl.text == '') {
+                                        _notComplete();
+                                      } else {
+                                        NetworkInfo(internetConnectionChecker)
+                                            .isConnected
+                                            .then((value) {
+                                          if (value) {
+                                            _submit();
+                                            if (widget.argsSubmitDataModel
+                                                .answerResults.isNotEmpty) {
+                                              updateQuestionBloc.add(
+                                                  UpdateQuestionAttempt(widget
+                                                          .argsSubmitDataModel
+                                                          .answerResults[
+                                                      questionCount]));
+                                            } else if (widget
+                                                .argsSubmitDataModel
+                                                .uploadAttachment
+                                                .isNotEmpty) {
+                                              uploadAttachmentBloc.add(
+                                                  UploadAttachmentAttempt(widget
+                                                          .argsSubmitDataModel
+                                                          .uploadAttachment[
+                                                      attachmentCount]));
+                                            } else if (widget
+                                                .argsSubmitDataModel
+                                                .refrence
+                                                .isNotEmpty) {
+                                              referenceBloc.add(
+                                                  InsertReferenceAttempt(widget
+                                                      .argsSubmitDataModel
+                                                      .refrence[refCount]));
+                                            } else {
+                                              updateTaskBloc.add(
+                                                  UpdateTaskAttempt(
+                                                      widget.argsSubmitDataModel
+                                                          .taskList.code!,
+                                                      widget.argsSubmitDataModel
+                                                          .taskList.type!,
+                                                      _notesCtrl.text,
+                                                      _valueCtrl.text == ""
+                                                          ? 0
+                                                          : double.parse(
+                                                              _valueCtrl.text),
+                                                      _sesuaiCtrl.text,
+                                                      widget.argsSubmitDataModel
+                                                          .taskList.date!));
+                                            }
+                                          } else {
+                                            _warningOffline();
+                                          }
+                                        });
+                                      }
+                                    }
+                                  },
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.45,
+                                    height: 45,
+                                    decoration: BoxDecoration(
+                                      color: primaryColor,
+                                      borderRadius: BorderRadius.circular(22),
+                                    ),
+                                    child: const Center(
+                                        child: Text('Submit',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600))),
+                                  ),
+                                ),
+                        ],
+                      )))
+            ],
+          ),
         ),
       ),
     );
@@ -1112,19 +1185,21 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
   Widget mainContent() {
     return SingleChildScrollView(
       child: Container(
-          height: MediaQuery.of(context).size.height * 0.9,
-          margin:
-              EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.2),
-          padding:
-              const EdgeInsets.only(bottom: 50, top: 16, left: 16, right: 16),
-          child: Column(
-            children: [
-              txtArea(),
-              const SizedBox(height: 16),
-              widget.argsSubmitDataModel.taskList.type == 'APPRAISAL'
-                  ? txtBoxNilaiAkhir()
-                  : txtBox()
-            ],
+          padding: EdgeInsets.only(
+              top: 16,
+              left: 16,
+              right: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Form(
+            child: Column(
+              children: [
+                txtArea(),
+                const SizedBox(height: 16),
+                widget.argsSubmitDataModel.taskList.type == 'APPRAISAL'
+                    ? txtBoxNilaiAkhir()
+                    : txtBox()
+              ],
+            ),
           )),
     );
   }
@@ -1173,37 +1248,46 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
             ),
             child: Center(
               child: TextFormField(
+                focusNode: _focusNode,
                 controller: _valueCtrl,
                 autofocus: false,
-                enabled:
-                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
-                        ? false
-                        : true,
-                readOnly:
-                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
-                        ? true
-                        : false,
+                enabled: widget.argsSubmitDataModel.taskList.status ==
+                            'WAITING' ||
+                        widget.argsSubmitDataModel.taskList.status == 'DONE' ||
+                        widget.argsSubmitDataModel.taskList.status == 'PENDING'
+                    ? false
+                    : true,
+                readOnly: widget.argsSubmitDataModel.taskList.status ==
+                            'WAITING' ||
+                        widget.argsSubmitDataModel.taskList.status == 'DONE' ||
+                        widget.argsSubmitDataModel.taskList.status == 'PENDING'
+                    ? true
+                    : false,
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.done,
                 style: TextStyle(
                     fontSize: 15.0,
                     color: widget.argsSubmitDataModel.taskList.status ==
                                 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                            widget.argsSubmitDataModel.taskList.status ==
+                                'DONE' ||
+                            widget.argsSubmitDataModel.taskList.status ==
+                                'PENDING'
                         ? Colors.grey
                         : Colors.black),
-                onEditingComplete: () {},
+                onEditingComplete: () => _focusNode.unfocus(),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
-                  fillColor: widget.argsSubmitDataModel.taskList.status ==
-                              'WAITING' ||
-                          widget.argsSubmitDataModel.taskList.status == 'DONE'
-                      ? Colors.grey.withOpacity(0.05)
-                      : Colors.white,
+                  fillColor:
+                      widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                              widget.argsSubmitDataModel.taskList.status ==
+                                  'DONE' ||
+                              widget.argsSubmitDataModel.taskList.status ==
+                                  'PENDING'
+                          ? Colors.grey.withOpacity(0.05)
+                          : Colors.white,
                   contentPadding:
                       const EdgeInsets.only(left: 14.0, bottom: 6.0, top: 8.0),
                   focusedBorder: OutlineInputBorder(
@@ -1274,36 +1358,45 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
             ),
             child: Center(
               child: TextFormField(
+                focusNode: _focusNode,
                 controller: _sesuaiCtrl,
                 autofocus: false,
-                enabled:
-                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
-                        ? false
-                        : true,
-                readOnly:
-                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
-                        ? true
-                        : false,
+                enabled: widget.argsSubmitDataModel.taskList.status ==
+                            'WAITING' ||
+                        widget.argsSubmitDataModel.taskList.status == 'DONE' ||
+                        widget.argsSubmitDataModel.taskList.status == 'PENDING'
+                    ? false
+                    : true,
+                readOnly: widget.argsSubmitDataModel.taskList.status ==
+                            'WAITING' ||
+                        widget.argsSubmitDataModel.taskList.status == 'DONE' ||
+                        widget.argsSubmitDataModel.taskList.status == 'PENDING'
+                    ? true
+                    : false,
                 textInputAction: TextInputAction.done,
                 style: TextStyle(
                     fontSize: 15.0,
                     color: widget.argsSubmitDataModel.taskList.status ==
                                 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                            widget.argsSubmitDataModel.taskList.status ==
+                                'DONE' ||
+                            widget.argsSubmitDataModel.taskList.status ==
+                                'PENDING'
                         ? Colors.grey
                         : Colors.black),
-                onEditingComplete: () {},
+                onEditingComplete: () => _focusNode.unfocus(),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
-                  fillColor: widget.argsSubmitDataModel.taskList.status ==
-                              'WAITING' ||
-                          widget.argsSubmitDataModel.taskList.status == 'DONE'
-                      ? Colors.grey.withOpacity(0.05)
-                      : Colors.white,
+                  fillColor:
+                      widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                              widget.argsSubmitDataModel.taskList.status ==
+                                  'DONE' ||
+                              widget.argsSubmitDataModel.taskList.status ==
+                                  'PENDING'
+                          ? Colors.grey.withOpacity(0.05)
+                          : Colors.white,
                   contentPadding:
                       const EdgeInsets.only(left: 14.0, bottom: 6.0, top: 8.0),
                   focusedBorder: OutlineInputBorder(
@@ -1373,16 +1466,18 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
             child: Center(
               child: TextFormField(
                 controller: _notesCtrl,
-                enabled:
-                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
-                        ? false
-                        : true,
-                readOnly:
-                    widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
-                        ? true
-                        : false,
+                enabled: widget.argsSubmitDataModel.taskList.status ==
+                            'WAITING' ||
+                        widget.argsSubmitDataModel.taskList.status == 'DONE' ||
+                        widget.argsSubmitDataModel.taskList.status == 'PENDING'
+                    ? false
+                    : true,
+                readOnly: widget.argsSubmitDataModel.taskList.status ==
+                            'WAITING' ||
+                        widget.argsSubmitDataModel.taskList.status == 'DONE' ||
+                        widget.argsSubmitDataModel.taskList.status == 'PENDING'
+                    ? true
+                    : false,
                 autofocus: false,
                 minLines: 8,
                 maxLines: 20,
@@ -1393,18 +1488,24 @@ class _FormSurvey5ScreenState extends State<FormSurvey5Screen>
                     fontSize: 15.0,
                     color: widget.argsSubmitDataModel.taskList.status ==
                                 'WAITING' ||
-                            widget.argsSubmitDataModel.taskList.status == 'DONE'
+                            widget.argsSubmitDataModel.taskList.status ==
+                                'DONE' ||
+                            widget.argsSubmitDataModel.taskList.status ==
+                                'PENDING'
                         ? Colors.grey
                         : Colors.black),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
-                  fillColor: widget.argsSubmitDataModel.taskList.status ==
-                              'WAITING' ||
-                          widget.argsSubmitDataModel.taskList.status == 'DONE'
-                      ? Colors.grey.withOpacity(0.05)
-                      : Colors.white,
+                  fillColor:
+                      widget.argsSubmitDataModel.taskList.status == 'WAITING' ||
+                              widget.argsSubmitDataModel.taskList.status ==
+                                  'DONE' ||
+                              widget.argsSubmitDataModel.taskList.status ==
+                                  'PENDING'
+                          ? Colors.grey.withOpacity(0.05)
+                          : Colors.white,
                   contentPadding: const EdgeInsets.all(14),
                   focusedBorder: OutlineInputBorder(
                     borderSide:

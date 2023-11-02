@@ -78,6 +78,14 @@ class UrlUtil {
     return baseUrl + getUrlQuestion2;
   }
 
+  static String urlQuestionBulk() =>
+      'api/mobsvy_api/api/TaskQuestion/GetQuestionByListTaskCode';
+
+  String getUrlQuestionBulk() {
+    final String getUrlQuestionBulk2 = urlQuestionBulk();
+    return baseUrl + getUrlQuestionBulk2;
+  }
+
   static String urlUpdateQuestion() => 'api/mobsvy_api/api/TaskQuestion/Update';
 
   String getUrlUpdateQuestion() {
@@ -91,6 +99,14 @@ class UrlUtil {
   String getUrlAttachment() {
     final String getUrlAttachment2 = urlAttachment();
     return baseUrl + getUrlAttachment2;
+  }
+
+  static String urlAttachmentBulk() =>
+      'api/mobsvy_api/api/TaskDocument/GetAttachmentsByListTaskCode';
+
+  String getUrlAttachmentBulk() {
+    final String getUrlAttachmentBulk2 = urlAttachmentBulk();
+    return baseUrl + getUrlAttachmentBulk2;
   }
 
   static String urlUploadAttachment() =>
@@ -130,5 +146,13 @@ class UrlUtil {
   String getUrlListReference() {
     final String urlInsertReference2 = urlListReference();
     return baseUrl + urlInsertReference2;
+  }
+
+  static String urlBulkReference() =>
+      'api/mobsvy_api/api/TaskReference/GetRowsByListTaskCode';
+
+  String getUrlBulkReference() {
+    final String getUrlBulkReference2 = urlBulkReference();
+    return baseUrl + getUrlBulkReference2;
   }
 }

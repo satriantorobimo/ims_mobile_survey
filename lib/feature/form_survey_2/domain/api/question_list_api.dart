@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:mobile_survey/feature/form_survey_2/data/answer_result_model.dart';
+import 'package:mobile_survey/feature/form_survey_2/data/get_question_request_model.dart';
 import 'package:mobile_survey/feature/form_survey_2/data/question_list_response_model.dart';
 import 'package:mobile_survey/feature/form_survey_5/data/success_update_response_model.dart';
 import 'package:mobile_survey/utility/general_util.dart';
@@ -75,6 +76,42 @@ class QuestionListApi {
         successUpdateResponseModel =
             SuccessUpdateResponseModel.fromJson(jsonDecode(res.body));
         throw successUpdateResponseModel.message!;
+      }
+    } catch (ex) {
+      throw ex.toString();
+    }
+  }
+
+  Future<QuestionListResponseModel> attemptGetQuestionBulk(
+      List<GetQuestionReqModel> listData) async {
+    List a = [];
+    final String? token = await SharedPrefUtil.getSharedString('token');
+    final dynamic ip = await GeneralUtil.getIpAddress();
+    final Map<String, String> header =
+        urlUtil.getHeaderTypeWithToken(token!, ip['ip']!);
+    final Map mapData = {};
+    var jeson = jsonEncode(listData);
+    mapData['p_list_task_code'] = jeson;
+    a.add(mapData);
+
+    final json = jsonEncode(a);
+
+    try {
+      Stopwatch stopwatch = Stopwatch()..start();
+      final res = await http.post(Uri.parse(urlUtil.getUrlQuestionBulk()),
+          body: json, headers: header);
+      if (res.statusCode == 200) {
+        log('Question List executed in ${stopwatch.elapsed}');
+        stopwatch.stop();
+        questionListResponseModel =
+            QuestionListResponseModel.fromJson(jsonDecode(res.body));
+        return questionListResponseModel;
+      } else if (res.statusCode == 401) {
+        throw 'expired';
+      } else {
+        questionListResponseModel =
+            QuestionListResponseModel.fromJson(jsonDecode(res.body));
+        throw questionListResponseModel.message!;
       }
     } catch (ex) {
       throw ex.toString();

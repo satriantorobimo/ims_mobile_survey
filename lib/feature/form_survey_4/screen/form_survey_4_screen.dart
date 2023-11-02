@@ -291,7 +291,7 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                             controller: _phoneAreaCtrl,
                             keyboardType: TextInputType.phone,
                             autofocus: false,
-                            maxLength: 6,
+                            maxLength: 4,
                             style: const TextStyle(
                                 fontSize: 15.0, color: Colors.black),
                             decoration: InputDecoration(
@@ -357,7 +357,7 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                             controller: _phoneCtrl,
                             keyboardType: TextInputType.phone,
                             autofocus: false,
-                            maxLength: 15,
+                            maxLength: 20,
                             style: const TextStyle(
                                 fontSize: 15.0, color: Colors.black),
                             decoration: InputDecoration(
@@ -650,15 +650,14 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
-                            enabled: isEdit ? false : true,
                             readOnly: isEdit ? false : true,
                             controller: _nameCtrl,
                             autofocus: false,
                             style: TextStyle(
                                 fontSize: 15.0,
-                                color: isEdit ? Colors.grey : Colors.black),
+                                color: !isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
-                              fillColor: isEdit
+                              fillColor: !isEdit
                                   ? Colors.grey.withOpacity(0.05)
                                   : Colors.white,
                               border: InputBorder.none,
@@ -718,17 +717,16 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
-                            enabled: isEdit ? false : true,
                             readOnly: isEdit ? false : true,
                             controller: _phoneAreaCtrl,
                             keyboardType: TextInputType.phone,
                             autofocus: false,
-                            maxLength: 6,
+                            maxLength: 4,
                             style: TextStyle(
                                 fontSize: 15.0,
-                                color: isEdit ? Colors.grey : Colors.black),
+                                color: !isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
-                              fillColor: isEdit
+                              fillColor: !isEdit
                                   ? Colors.grey.withOpacity(0.05)
                                   : Colors.white,
                               counterText: '',
@@ -792,14 +790,13 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                             controller: _phoneCtrl,
                             keyboardType: TextInputType.phone,
                             autofocus: false,
-                            maxLength: 15,
-                            enabled: isEdit ? false : true,
+                            maxLength: 20,
                             readOnly: isEdit ? false : true,
                             style: TextStyle(
                                 fontSize: 15.0,
-                                color: isEdit ? Colors.grey : Colors.black),
+                                color: !isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
-                              fillColor: isEdit
+                              fillColor: !isEdit
                                   ? Colors.grey.withOpacity(0.05)
                                   : Colors.white,
                               counterText: '',
@@ -859,7 +856,6 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
-                            enabled: isEdit ? false : true,
                             readOnly: isEdit ? false : true,
                             controller: _remarkCtrl,
                             autofocus: false,
@@ -867,9 +863,9 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                             maxLength: 4000,
                             style: TextStyle(
                                 fontSize: 15.0,
-                                color: isEdit ? Colors.grey : Colors.black),
+                                color: !isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
-                              fillColor: isEdit
+                              fillColor: !isEdit
                                   ? Colors.grey.withOpacity(0.05)
                                   : Colors.white,
                               border: InputBorder.none,
@@ -929,16 +925,15 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         ),
                         child: Center(
                           child: TextFormField(
-                            enabled: isEdit ? false : true,
                             readOnly: isEdit ? false : true,
                             controller: _nilaiCtrl,
                             keyboardType: TextInputType.number,
                             autofocus: false,
                             style: TextStyle(
                                 fontSize: 15.0,
-                                color: isEdit ? Colors.grey : Colors.black),
+                                color: !isEdit ? Colors.grey : Colors.black),
                             decoration: InputDecoration(
-                              fillColor: isEdit
+                              fillColor: !isEdit
                                   ? Colors.grey.withOpacity(0.05)
                                   : Colors.white,
                               border: InputBorder.none,
@@ -974,28 +969,32 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         _phoneCtrl.text == '' && _remarkCtrl.text.isEmpty ||
                         _remarkCtrl.text == ''
                     ? null
-                    : () {
-                        setState(() {
-                          providers.updateHubunganModel(
-                              index,
-                              HubunganModel(
-                                  name: _nameCtrl.text,
-                                  phoneArea: _phoneAreaCtrl.text,
-                                  phoneNumber: _phoneCtrl.text,
-                                  remark: _remarkCtrl.text,
-                                  value: double.parse(_nilaiCtrl.text),
-                                  taskCode: widget
-                                      .argsSubmitDataModel.taskList.code));
+                    : !isEdit
+                        ? () {
+                            Navigator.pop(context);
+                          }
+                        : () {
+                            setState(() {
+                              providers.updateHubunganModel(
+                                  index,
+                                  HubunganModel(
+                                      name: _nameCtrl.text,
+                                      phoneArea: _phoneAreaCtrl.text,
+                                      phoneNumber: _phoneCtrl.text,
+                                      remark: _remarkCtrl.text,
+                                      value: double.parse(_nilaiCtrl.text),
+                                      taskCode: widget
+                                          .argsSubmitDataModel.taskList.code));
 
-                          _nameCtrl.clear();
-                          _phoneAreaCtrl.clear();
-                          _phoneCtrl.clear();
-                          _remarkCtrl.clear();
-                          _nilaiCtrl.clear();
-                        });
+                              _nameCtrl.clear();
+                              _phoneAreaCtrl.clear();
+                              _phoneCtrl.clear();
+                              _remarkCtrl.clear();
+                              _nilaiCtrl.clear();
+                            });
 
-                        Navigator.pop(context);
-                      },
+                            Navigator.pop(context);
+                          },
                 child: Container(
                   width: double.infinity,
                   height: 45,
@@ -1011,9 +1010,9 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                         : primaryColor,
                     borderRadius: BorderRadius.circular(22),
                   ),
-                  child: const Center(
-                      child: Text('Update Sumber Informasi',
-                          style: TextStyle(
+                  child: Center(
+                      child: Text(isEdit ? 'Update Sumber Informasi' : 'Tutup',
+                          style: const TextStyle(
                               fontSize: 12,
                               color: Colors.white,
                               fontWeight: FontWeight.w600))),
@@ -1063,7 +1062,7 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
@@ -1165,11 +1164,16 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                                 .toString(),
                                             index,
                                             widget.argsSubmitDataModel.taskList
-                                                        .status ==
-                                                    'WAITING' ||
-                                                widget.argsSubmitDataModel
-                                                        .taskList.status ==
-                                                    'DONE');
+                                                            .status ==
+                                                        'WAITING' ||
+                                                    widget.argsSubmitDataModel
+                                                            .taskList.status ==
+                                                        'DONE' ||
+                                                    widget.argsSubmitDataModel
+                                                            .taskList.status ==
+                                                        'PENDING'
+                                                ? false
+                                                : true);
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
@@ -1241,14 +1245,21 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                                             FontWeight.w400),
                                                   ),
                                                 ),
-                                                widget.argsSubmitDataModel.taskList
+                                                widget
+                                                                .argsSubmitDataModel
+                                                                .taskList
                                                                 .status ==
                                                             'WAITING' ||
                                                         widget
                                                                 .argsSubmitDataModel
                                                                 .taskList
                                                                 .status ==
-                                                            'DONE'
+                                                            'DONE' ||
+                                                        widget
+                                                                .argsSubmitDataModel
+                                                                .taskList
+                                                                .status ==
+                                                            'PENDING'
                                                     ? Container()
                                                     : InkWell(
                                                         onTap: () {
@@ -1282,7 +1293,10 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                             'WAITING' ||
                                         widget.argsSubmitDataModel.taskList
                                                 .status ==
-                                            'DONE'
+                                            'DONE' ||
+                                        widget.argsSubmitDataModel.taskList
+                                                .status ==
+                                            'PENDING'
                                     ? null
                                     : () {
                                         setState(() {
@@ -1300,14 +1314,17 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                   children: [
                                     Icon(
                                       Icons.person_add,
-                                      color: widget.argsSubmitDataModel.taskList
-                                                      .status ==
-                                                  'WAITING' ||
-                                              widget.argsSubmitDataModel
-                                                      .taskList.status ==
-                                                  'DONE'
-                                          ? Colors.grey
-                                          : primaryColor,
+                                      color:
+                                          widget.argsSubmitDataModel.taskList.status ==
+                                                      'WAITING' ||
+                                                  widget.argsSubmitDataModel
+                                                          .taskList.status ==
+                                                      'DONE' ||
+                                                  widget.argsSubmitDataModel
+                                                          .taskList.status ==
+                                                      'PENDING'
+                                              ? Colors.grey
+                                              : primaryColor,
                                       size: 22,
                                     ),
                                     const SizedBox(width: 8),
@@ -1319,7 +1336,10 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                                       'WAITING' ||
                                                   widget.argsSubmitDataModel
                                                           .taskList.status ==
-                                                      'DONE'
+                                                      'DONE' ||
+                                                  widget.argsSubmitDataModel
+                                                          .taskList.status ==
+                                                      'PENDING'
                                               ? Colors.grey
                                               : primaryColor,
                                           fontSize: 12,
@@ -1338,7 +1358,10 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                                 'WAITING' ||
                                             widget.argsSubmitDataModel.taskList
                                                     .status ==
-                                                'DONE'
+                                                'DONE' ||
+                                            widget.argsSubmitDataModel.taskList
+                                                    .status ==
+                                                'PENDING'
                                         ? Colors.grey
                                         : primaryColor,
                                   )),
@@ -1388,7 +1411,9 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                           onTap: widget.argsSubmitDataModel.taskList.status ==
                                       'WAITING' ||
                                   widget.argsSubmitDataModel.taskList.status ==
-                                      'DONE'
+                                      'DONE' ||
+                                  widget.argsSubmitDataModel.taskList.status ==
+                                      'PENDING'
                               ? () {
                                   Navigator
                                       .pushNamed(context,
@@ -1432,7 +1457,10 @@ class _FormSurvey4ScreenState extends State<FormSurvey4Screen>
                                               'WAITING' ||
                                           widget.argsSubmitDataModel.taskList
                                                   .status ==
-                                              'DONE'
+                                              'DONE' ||
+                                          widget.argsSubmitDataModel.taskList
+                                                  .status ==
+                                              'PENDING'
                                       ? primaryColor
                                       : formSurvey4Provider
                                                   .listHubunganModel.length >=

@@ -85,18 +85,21 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                 maxLines: null,
                 keyboardType: TextInputType.multiline,
                 enabled: widget.taskList.status == 'WAITING' ||
-                        widget.taskList.status == 'DONE'
+                        widget.taskList.status == 'DONE' ||
+                        widget.taskList.status == 'PENDING'
                     ? false
                     : true,
                 readOnly: widget.taskList.status == 'WAITING' ||
-                        widget.taskList.status == 'DONE'
+                        widget.taskList.status == 'DONE' ||
+                        widget.taskList.status == 'PENDING'
                     ? true
                     : false,
                 textInputAction: TextInputAction.done,
                 style: TextStyle(
                     fontSize: 15.0,
                     color: widget.taskList.status == 'WAITING' ||
-                            widget.taskList.status == 'DONE'
+                            widget.taskList.status == 'DONE' ||
+                            widget.taskList.status == 'PENDING'
                         ? Colors.grey
                         : Colors.black),
                 onChanged: (value) {
@@ -124,7 +127,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                   hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
                   filled: true,
                   fillColor: widget.taskList.status == 'WAITING' ||
-                          widget.taskList.status == 'DONE'
+                          widget.taskList.status == 'DONE' ||
+                          widget.taskList.status == 'PENDING'
                       ? Colors.grey.withOpacity(0.05)
                       : Colors.white,
                   contentPadding:
@@ -199,7 +203,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
               groupValue: data[index].answer ?? '',
               horizontalAlignment: MainAxisAlignment.spaceAround,
               onChanged: widget.taskList.status == 'WAITING' ||
-                      widget.taskList.status == 'DONE'
+                      widget.taskList.status == 'DONE' ||
+                      widget.taskList.status == 'PENDING'
                   ? null
                   : (values) async {
                       setState(() {
@@ -235,7 +240,8 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                       });
                     },
               activeColor: widget.taskList.status == 'WAITING' ||
-                      widget.taskList.status == 'DONE'
+                      widget.taskList.status == 'DONE' ||
+                      widget.taskList.status == 'PENDING'
                   ? Colors.grey
                   : primaryColor,
               items: listQuestion,
@@ -324,7 +330,7 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
           backgroundColor: Colors.white,
           elevation: 0,
           title: Text(
-            'Form Survey ${widget.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
+            'Form ${widget.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
             style: const TextStyle(
                 fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
           ),
@@ -447,80 +453,64 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                         .width *
                                                     0.83,
                                                 child: CustomDropdownButton2(
-                                                    onChanged: widget.taskList
-                                                                    .status ==
-                                                                'WAITING' ||
-                                                            widget.taskList
-                                                                    .status ==
-                                                                'DONE'
-                                                        ? null
-                                                        : (values) {
-                                                            setState(() {
-                                                              data[index]
-                                                                      .answer =
-                                                                  values;
-                                                              for (int i = 0;
-                                                                  i <
-                                                                      data[index]
-                                                                          .answerChoice!
-                                                                          .length;
-                                                                  i++) {
-                                                                if (data[index]
-                                                                        .answerChoice![
-                                                                            i]
-                                                                        .questionOptionDesc ==
-                                                                    values) {
-                                                                  if (results
-                                                                      .isEmpty) {
-                                                                    results.add(AnswerResultsModel(
-                                                                        pAnswer:
-                                                                            data[index]
-                                                                                .answer,
-                                                                        pAnswerChoiceId: data[index]
-                                                                            .answerChoice![
-                                                                                i]
-                                                                            .id,
-                                                                        pCode: data[index]
-                                                                            .code));
-                                                                  } else {
-                                                                    var isData = results.where((element) => element
-                                                                        .pCode!
-                                                                        .contains(data[index]
+                                                    onChanged:
+                                                        widget.taskList.status ==
+                                                                    'WAITING' ||
+                                                                widget.taskList
+                                                                        .status ==
+                                                                    'DONE' ||
+                                                                widget.taskList
+                                                                        .status ==
+                                                                    'PENDING'
+                                                            ? null
+                                                            : (values) {
+                                                                setState(() {
+                                                                  data[index]
+                                                                          .answer =
+                                                                      values;
+                                                                  for (int i =
+                                                                          0;
+                                                                      i <
+                                                                          data[index]
+                                                                              .answerChoice!
+                                                                              .length;
+                                                                      i++) {
+                                                                    if (data[index]
                                                                             .answerChoice![i]
-                                                                            .questionCode!));
+                                                                            .questionOptionDesc ==
+                                                                        values) {
+                                                                      if (results
+                                                                          .isEmpty) {
+                                                                        results.add(AnswerResultsModel(
+                                                                            pAnswer:
+                                                                                data[index].answer,
+                                                                            pAnswerChoiceId: data[index].answerChoice![i].id,
+                                                                            pCode: data[index].code));
+                                                                      } else {
+                                                                        var isData = results.where((element) => element
+                                                                            .pCode!
+                                                                            .contains(data[index].answerChoice![i].questionCode!));
 
-                                                                    if (isData
-                                                                        .isNotEmpty) {
-                                                                      results.removeWhere((element) => element
-                                                                          .pCode!
-                                                                          .contains(data[index]
-                                                                              .answerChoice![i]
-                                                                              .questionCode!));
-                                                                      results.add(AnswerResultsModel(
-                                                                          pAnswer: data[index]
-                                                                              .answer,
-                                                                          pAnswerChoiceId: data[index]
-                                                                              .answerChoice![
-                                                                                  i]
-                                                                              .id,
-                                                                          pCode:
-                                                                              data[index].code));
-                                                                    } else {
-                                                                      results.add(AnswerResultsModel(
-                                                                          pAnswer: data[index]
-                                                                              .answer,
-                                                                          pAnswerChoiceId: data[index]
-                                                                              .answerChoice![
-                                                                                  i]
-                                                                              .id,
-                                                                          pCode:
-                                                                              data[index].code));
+                                                                        if (isData
+                                                                            .isNotEmpty) {
+                                                                          results.removeWhere((element) => element
+                                                                              .pCode!
+                                                                              .contains(data[index].answerChoice![i].questionCode!));
+                                                                          results.add(AnswerResultsModel(
+                                                                              pAnswer: data[index].answer,
+                                                                              pAnswerChoiceId: data[index].answerChoice![i].id,
+                                                                              pCode: data[index].code));
+                                                                        } else {
+                                                                          results.add(AnswerResultsModel(
+                                                                              pAnswer: data[index].answer,
+                                                                              pAnswerChoiceId: data[index].answerChoice![i].id,
+                                                                              pCode: data[index].code));
+                                                                        }
+                                                                      }
                                                                     }
                                                                   }
-                                                                }
-                                                              }
-                                                            });
-                                                          },
+                                                                });
+                                                              },
                                                     dropdownItems: ddItems,
                                                     buttonWidth:
                                                         double.infinity,
@@ -542,7 +532,10 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                   'WAITING' ||
                                                               widget.taskList
                                                                       .status ==
-                                                                  'DONE'
+                                                                  'DONE' ||
+                                                              widget.taskList
+                                                                      .status ==
+                                                                  'PENDING'
                                                           ? Colors.grey
                                                               .withOpacity(0.05)
                                                           : Colors.white,
@@ -591,7 +584,10 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                   'WAITING' ||
                                                               widget.taskList
                                                                       .status ==
-                                                                  'DONE'
+                                                                  'DONE' ||
+                                                              widget.taskList
+                                                                      .status ==
+                                                                  'PENDING'
                                                           ? false
                                                           : true,
                                                   onTap:
@@ -599,7 +595,10 @@ class _FormSurvey2ScreenState extends State<FormSurvey2Screen> {
                                                                   'WAITING' ||
                                                               widget.taskList
                                                                       .status ==
-                                                                  'DONE'
+                                                                  'DONE' ||
+                                                              widget.taskList
+                                                                      .status ==
+                                                                  'PENDING'
                                                           ? null
                                                           : () async {
                                                               final result = await Navigator.pushNamed(

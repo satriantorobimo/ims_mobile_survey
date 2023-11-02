@@ -240,6 +240,12 @@ class DatabaseHelper {
     });
   }
 
+  // Read single tasks
+  static Future<List<Map<String, dynamic>>> getSingleTask(String code) async {
+    final db = await DatabaseHelper.db();
+    return db.query('task', where: "code = ?", whereArgs: [code]);
+  }
+
   // Read all tasks
   static Future<List<Data>> getTaskPending() async {
     final db = await DatabaseHelper.db();

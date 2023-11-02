@@ -26,6 +26,24 @@ class QuestionListBloc extends Bloc<QuestionListEvent, QuestionListState> {
           emit(QuestionListException(e.toString()));
         }
       }
+
+      if (event is QuestionBulkAttempt) {
+        try {
+          emit(QuestionListLoading());
+          final questionListResponseModel =
+              await questionListRepo.attemptGetQuestionBulk(event.listData);
+          if (questionListResponseModel!.result == 1) {
+            emit(QuestionListLoaded(
+                questionListResponseModel: questionListResponseModel));
+          } else if (questionListResponseModel.result == 0) {
+            emit(QuestionListError(questionListResponseModel.message));
+          } else {
+            emit(const QuestionListException('error'));
+          }
+        } catch (e) {
+          emit(QuestionListException(e.toString()));
+        }
+      }
     });
   }
 }

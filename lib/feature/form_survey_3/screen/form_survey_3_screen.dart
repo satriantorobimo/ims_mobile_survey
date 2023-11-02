@@ -301,7 +301,7 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Form Survey ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
+          'Form ${widget.argsSubmitDataModel.taskList.type!.toLowerCase().capitalizeOnlyFirstLater()}',
           style: const TextStyle(
               fontSize: 16, color: Colors.black, fontWeight: FontWeight.w700),
         ),
@@ -468,7 +468,10 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                           'WAITING' ||
                                                       widget.argsSubmitDataModel
                                                               .taskList.status ==
-                                                          'DONE'
+                                                          'DONE' ||
+                                                      widget.argsSubmitDataModel
+                                                              .taskList.status ==
+                                                          'PENDING'
                                                   ? null
                                                   : () {
                                                       _imageAction(index);
@@ -560,7 +563,12 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                                   .argsSubmitDataModel
                                                                   .taskList
                                                                   .status ==
-                                                              'DONE'
+                                                              'DONE' ||
+                                                          widget
+                                                                  .argsSubmitDataModel
+                                                                  .taskList
+                                                                  .status ==
+                                                              'PENDING'
                                                       ? null
                                                       : () {
                                                           _imageAction(index);
@@ -578,7 +586,12 @@ class _FormSurvey3ScreenState extends State<FormSurvey3Screen> {
                                                                         .argsSubmitDataModel
                                                                         .taskList
                                                                         .status ==
-                                                                    'DONE'
+                                                                    'DONE' ||
+                                                                widget
+                                                                        .argsSubmitDataModel
+                                                                        .taskList
+                                                                        .status ==
+                                                                    'PENDING'
                                                             ? Colors.grey
                                                             : primaryColor,
                                                         fontWeight:

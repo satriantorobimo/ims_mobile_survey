@@ -25,6 +25,24 @@ class ReferenceListBloc extends Bloc<ReferenceListEvent, ReferenceListState> {
           emit(ReferenceListException(e.toString()));
         }
       }
+
+      if (event is ReferenceBulkAttempt) {
+        try {
+          emit(ReferenceListLoading());
+          final referenceListResponseModel =
+              await referenceRepo.attemptGetReferenceBulk(event.listData);
+          if (referenceListResponseModel!.result == 1) {
+            emit(ReferenceListLoaded(
+                referenceListResponseModel: referenceListResponseModel));
+          } else if (referenceListResponseModel.result == 0) {
+            emit(ReferenceListError(referenceListResponseModel.message));
+          } else {
+            emit(const ReferenceListException('error'));
+          }
+        } catch (e) {
+          emit(ReferenceListException(e.toString()));
+        }
+      }
     });
   }
 }
