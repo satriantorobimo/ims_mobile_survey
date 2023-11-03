@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_survey/components/color_comp.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart';
 
 class CardWidget extends StatelessWidget {
@@ -60,7 +61,7 @@ class CardWidget extends StatelessWidget {
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  color: colorBg,
+                  color: label == 'ASSIGN' ? secondaryColor.withOpacity(0.4) :  label == 'WAITING' ? const Color(0xFFFECCCC) : label == 'RETURN' ? thirdColor.withOpacity(0.4) : fifthColor.withOpacity(0.4),
                 ),
                 padding: const EdgeInsets.all(5),
                 child: Center(
@@ -69,7 +70,7 @@ class CardWidget extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: color),
+                        color: label == 'ASSIGN' ? secondaryColor :  label == 'WAITING' ? primaryColor : label == 'RETURN' ? thirdColor : fifthColor),
                   ),
                 ),
               )

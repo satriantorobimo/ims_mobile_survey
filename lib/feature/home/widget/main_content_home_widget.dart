@@ -76,7 +76,7 @@ class MainContentHomeWidget extends StatelessWidget {
             var bottomBarProvider =
                 Provider.of<TabProvider>(context, listen: false);
             bottomBarProvider.setPage(1);
-            bottomBarProvider.setTab(0);
+            bottomBarProvider.setTab(1);
           },
           child: Container(
               decoration: BoxDecoration(

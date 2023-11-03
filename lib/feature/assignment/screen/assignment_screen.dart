@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:group_radio_button/group_radio_button.dart';
 import 'package:mobile_survey/components/color_comp.dart';
+import 'package:mobile_survey/components/loading_grid_comp.dart';
 import 'package:mobile_survey/feature/assignment/data/task_list_response_model.dart';
 import 'package:mobile_survey/feature/assignment/provider/assignment_provider.dart';
 import 'package:mobile_survey/feature/assignment/widget/list_view_assignment_widget.dart';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 
 class AssignmentScreen extends StatefulWidget {
   const AssignmentScreen({super.key, required this.tabNumber});
+
   final int tabNumber;
 
   @override
@@ -293,11 +295,45 @@ class _AssignmentScreenState extends State<AssignmentScreen>
                     controller: _tabController,
                     children: <Widget>[
                       isLoading
-                          ? Container()
+                          ? const Padding(
+                              padding: EdgeInsets.only(
+                                  left: 8.0, right: 8.0, top: 24.0),
+                              child: LoadingGridComp(
+                                height: 100,
+                                length: 5,
+                              ),
+                            )
                           : ListViewAssignmentWidget(taskList: ongoing),
-                      ListViewAssignmentWidget(taskList: waiting),
-                      ListViewAssignmentWidget(taskList: returned),
-                      ListViewAssignmentWidget(taskList: done),
+                      isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.only(
+                                  left: 8.0, right: 8.0, top: 24.0),
+                              child: LoadingGridComp(
+                                height: 100,
+                                length: 5,
+                              ),
+                            )
+                          : ListViewAssignmentWidget(taskList: waiting),
+                      isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.only(
+                                  left: 8.0, right: 8.0, top: 24.0),
+                              child: LoadingGridComp(
+                                height: 100,
+                                length: 5,
+                              ),
+                            )
+                          : ListViewAssignmentWidget(taskList: returned),
+                      isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.only(
+                                  left: 8.0, right: 8.0, top: 24.0),
+                              child: LoadingGridComp(
+                                height: 100,
+                                length: 5,
+                              ),
+                            )
+                          : ListViewAssignmentWidget(taskList: done),
                     ],
                   ),
                 ),
